@@ -1,0 +1,99 @@
+<head>
+<script src="/socket.io/socket.io.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.js"></script>
+<script src="examples/socket.io/node_modules/d3/d3.js"></script>
+<script src="examples/socket.io/node_modules/d3-cloud/d3.layout.cloud.js"></script>
+
+</head>
+<body>
+<div id="tweetd"></div>
+</div>
+<script>     
+
+(function() {
+    var fill = d3.scale.category20();
+    //what range of font sizes do we want, we will scale the word counts
+    var fontSize = d3.scale.log().range([10, 90]);
+
+    //create my cloud object
+    var mycloud = d3.layout.cloud().size([600, 600])
+          .words([])
+          .padding(2)
+          .rotate(function() { return ~~(Math.random() * 2) * 90; })
+          // .rotate(function() { return 0; })
+          .font("Impact")
+          .fontSize(function(d) { return fontSize(d.size); })
+          .on("end", draw)
+
+    //render the cloud with animations
+     function draw(words) {
+        //fade existing tag cloud out
+        d3.select("body").selectAll("svg").selectAll("g")
+            .transition()
+                .duration(1000)
+                .style("opacity", 1e-6)
+                .remove();
+
+        //render new tag cloud
+        d3.select("body").selectAll("svg")
+            .append("g")
+                 .attr("transform", "translate(300,300)")
+                .selectAll("text")
+                .data(words)
+            .enter().append("text")
+            .style("font-size", function(d) { return ((d.size)* 1) + "px"; })
+            .style("font-family", "Impact")
+            .style("fill", function(d, i) { return fill(i); })
+            .style("opacity", 1e-6)
+            .attr("text-anchor", "middle")
+            .attr("transform", function(d) { return "translate(" + [d.x, d.y] + ")rotate(" + d.rotate + ")"; })
+            .transition()
+            .duration(1000)
+            .style("opacity", 1)
+            .text(function(d) { return d.text; });
+      }
+
+	 //create SVG container
+	    d3.select("body").append("svg")
+	        .attr("width", 600)
+	        .attr("height", 600);
+
+	   
+
+	    //start streaming
+	   //var interval = setInterval(function(){get_words()}, 4000);
+ 
+    // d3.layout.cloud().size([300, 300])
+    //   .words([
+    //     "Hello", "world", "normally", "you", "want", "more", "words",
+    //     "than", "this"].map(function(d) {
+    //     return {text: d, size: 10 + Math.random() * 90};
+    //   }))
+    //   .padding(5)
+    //   .rotate(function() { return ~~(Math.random() * 2) * 90; })
+    //   .font("Impact")
+    //   .fontSize(function(d) { return d.size; })
+    //   .on("end", draw)
+    //   .start();
+
+
+	  var socket = io.connect('http://localhost:3001');
+        socket.on('twitter', function(tweet){
+          console.log(tweet)
+          console.log(d3.layout.cloud().words())
+        if(tweet['wc'].length>0){
+         d3.layout.cloud().size([300, 300])
+      .words(tweet['wc'])
+      .padding(5)
+      .rotate(function() { return ~~(Math.random() * 2) * 90; })
+      .font("Impact")
+      .fontSize(function(d) { return d.size; })
+      .on("end", draw)
+      .start();
+       }
+        //draw(tweet)
+        });
+  })();
+  </script>
+</body>
+

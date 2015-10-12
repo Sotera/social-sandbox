@@ -1,0 +1,46 @@
+require(rkafka)
+require(RJSONIO)
+
+prod1 <- rkafka.createProducer("127.0.0.1:9092")
+
+df <- readRDS('/sandbox/data/df.rds')
+
+while(i < nrow(df)) {
+	package <- RJSONIO::toJSON(df[i,])
+	rkafka.send(prod1,"instagram","127.0.0.1:9092", package)
+	Sys.sleep(1)
+}
+
+rkafka.closeProducer(prod1)
+
+# ---
+
+require(rkafka)
+require(RJSONIO)
+
+consumer1 = rkafka.createConsumer("127.0.0.1:2181","instagram")
+prod2     = rkafka.createProducer("127.0.0.1:9092")
+
+process <- function(x) {
+	RJSONIO::toJSON(c(1, 2, 3))
+}
+
+while(TRUE) {
+	val <- rkafka.read(consumer1)
+	val <- RJSONIO::fromJSON(val)
+	
+	res <- process(val)
+	print(res)
+	# rkafka.send(prod2, "instagram_proc", "127.0.0.1:9092", res)	
+}
+
+# ---
+
+require(rkafka)
+require(RJSONIO)
+
+consumer2 = rkafka.createConsumer("127.0.0.1:2181","instagram_proc")
+
+while(TRUE) {
+	print(rkafka.read(consumer2))
+}

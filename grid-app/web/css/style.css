@@ -1,0 +1,150 @@
+
+  body {
+    height           : 100%;
+    width            : 100%;
+    padding-top      : 50px;
+    //padding-bottom   : 60px;
+    background-color : rgb(36, 35, 35)
+  }
+
+  #timeseries {
+    background-color : rgb(122, 35, 35);
+    border : 1px solid grey;
+  }
+  
+  #map-wrapper {
+    position : absolute;
+    width    : 75%;
+    height   : 65%;
+    top:0px;
+  }
+
+  .leaflet-control-container {
+    position   : absolute;
+    top: 50px;
+  }
+  
+  .modal-title {
+    color : yellow;
+  }
+  
+  .modal-dialog {
+    margin-left: 15%;
+    margin-right: 15%;
+    width: 70%;
+  }
+  
+  .modal-content {
+    background : rgba(0, 119, 255, 0.78);
+  }
+  
+  .scrape-name-btn {
+    width: 100%;
+    font-size: 1.25em;
+  }
+
+  .scrape-opt-btn {
+    width: 100%;
+    padding: 53px;
+    font-size: 3em;
+  }
+
+  #map {
+    position:absolute;
+    top:50px; 
+    bottom:0; 
+    width:100%;
+    z-index: 1;
+    height:100%
+  }
+
+  .side-bar {
+    position   : absolute;
+    top        : 50px;
+    right      : 0px;
+    bottom     : 25%;
+    width      : 33%;
+    background-color : rgb(36, 35, 35);
+    z-index : 2;
+    border : 1px solid grey;
+    overflow-y : auto;
+  }
+  
+  .user-ts {
+    border : 1px solid grey;
+  }
+  
+  .side-bar-image {
+    width : 10%;
+    border : 1px solid grey;
+  }
+
+  #events {
+    background-color: rgb(36, 35, 35);
+  }
+  
+  .bottom-bar {
+    position  : absolute;
+    bottom    : 0px;
+    left      : 0px;
+    right     : 0px;
+    height    : 35%;
+    background-color : rgb(36, 35, 35);
+    z-index : 3;
+    border : 1px solid grey;
+  }
+
+  #images {
+    overflow-y : auto;
+  }
+
+  #timeplot {
+    overflow-y : auto;
+    background-color : rgb(36, 35, 35);
+    border : 1px solid grey;
+  }
+
+/**/
+
+.bottom-bar .axis path,
+.bottom-bar .axis line ,
+.side-bar .axis path,
+.side-bar .axis line {
+  fill: none;
+  stroke: #000;
+  shape-rendering: crispEdges;
+}
+
+.bottom-bar .x.axis path,
+.side-bar .x.axis path {
+  display: none;
+}
+
+.bottom-bar .line,
+.side-bar .line {
+  fill: none;
+  stroke-width: 2px;
+}
+
+/**/
+
+  circle.ping {
+      stroke       : #000;
+      stroke-width : 0.5px;
+      fill         : red;
+  }
+
+  .container .text-muted {
+    margin : 20px 0;
+  }
+
+  .marker {
+    width         : 2;
+    height        : 2;
+    border        : 2px solid red;
+    border-radius : 50%;
+  }
+
+
+
+

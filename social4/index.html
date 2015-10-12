@@ -1,0 +1,66 @@
+<!doctype html>
+<head>
+	<link type="text/css" rel="stylesheet" href="node_modules/rickshaw/src/css/graph.css">
+	<link type="text/css" rel="stylesheet" href="node_modules/rickshaw/examples/css/lines.css">
+	<link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
+	<link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css">
+
+
+	<link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.css" />
+	<script src="node_modules/d3/d3.js"></script>
+
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+	<script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
+	<script src="/socket.io/socket.io.js"></script>
+  <script src="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.js"></script>
+	<script src="bower_components/leaflet-d3/dist/leaflet-d3.js"></script>
+	<script src="node_modules/d3-cloud/d3.layout.cloud.js"></script>
+	<script src="node_modules/rickshaw/rickshaw.js"></script>
+  <script src="http://underscorejs.org/underscore.js"></script>
+    
+  <!-- <script>
+    $(function() {
+      $( "#chart_container" ).draggable();
+      $("#wc").draggable();
+    });
+  </script>
+   -->
+   
+     <link type="text/css" rel="stylesheet" href="style.css"/>
+   
+</head>
+
+<body>
+
+  <div class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+    <div class="container-fluid">
+      <div class="navbar-header">
+        <span class="navbar-brand">StreamingSocialSandbox</span>
+      </div>
+      <div>
+        <ul>
+          <span id="created_time" class="pull-right" style="color:white;"> </span>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- <div id="chart_container" style="position:absolute; top=0px; left=100px; background-color:white; width:400px;
+  height:300px; z-index:100; filter:alpha(opacity=50); opacity:0.5; class="ui-widget-content" >
+  	<div id="chart"></div>
+  </div>
+  <div id="wc" style="position:absolute; top=0px; left=100px; background-color:white; width:400px;
+  height:300px; z-index:100; filter:alpha(opacity=50); opacity:0.5; class="ui-widget-content" >
+          <div id="chart2"></div>
+  </div>
+   -->
+
+  <div id="map"></div>
+  
+  <script src="application.js"></script>
+
+
+  
+</body>
+

@@ -1,0 +1,47 @@
+
+rb <- rbfdot()
+CLOSE_DEF <- 0.95
+HID_DEF   <- 30    # quantile(.8) is good?
+
+df       <- df[order(df$time),]
+prior    <- df[1:35894,]
+prior$cl <- 0
+
+for(i in 37242:nrow(df)) {
+	print(i)
+	
+	post    <- df[i,]
+	post$cl <- 0
+	last    <- prior[(i-2000):(i-1),]
+	
+	sub <- rbind(post, last)
+	
+	dsub   <- apply(sub[,c('loc.latitude', 'loc.longitude')], 2, scale)
+	k_dist <- apply(dsub[-1,], 1, function(x) {
+		rb(x, dsub[1,])
+	})
+
+	tsub   <- apply(sub[,c('ntime'), drop = F], 2, scale)
+	k_tmp  <- apply(tsub[-1,,drop=F], 1, function(x) {
+		rb(x, tsub[1,,drop=F])	
+	})
+	
+	k        <- (k_dist + k_tmp) / 2
+	names(k) <- sub$id[-1]
+	
+	close_points <- names(sort(k[k > CLOSE_DEF], decreasing = F))
+	is_dense     <- length(close_points) > HID_DEF
+	if(is_dense) {
+		n_cls <- prior$cl[prior$id %in% close_points]
+		tab   <- names(table(n_cls[n_cls != 0]))
+		if(length(tab) == 0) {
+			vote <- max(prior$cl) + 1
+		} else {
+			vote <- as.numeric(tail(sort(tab), 1))
+		}
+		post$cl <- vote
+		print(post)
+	}
+	
+	prior <- rbind(prior, post)
+}

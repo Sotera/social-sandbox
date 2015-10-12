@@ -1,0 +1,113 @@
+require(scales)
+require(kernlab)
+
+clean <- function(df) {
+	df$loc.longitude <- as.numeric(df$loc.longitude)
+	df$loc.latitude  <- as.numeric(df$loc.latitude)
+	df$time          <- as.Date(as.numeric(df$time) / (60 * 60 * 24), origin = '1970-01-01')
+
+	df <- df[df$loc.latitude > 39.236 & df$loc.latitude < 39.373,]
+	df <- df[df$loc.longitude > -76.72 & df$loc.longitude < -76.6,]
+	df
+}
+
+augment <- function(df) {
+	df$ntime <- as.numeric(df$time)
+	
+	df$day <- as.Date(floor(as.numeric(df$time)), '1970-01-01')
+	
+	df <- df[order(df$loc.lat),]
+	df <- df[order(df$loc.lon),]
+	
+	df$rlat <- order(df$loc.lat)
+	df$rlon <- order(df$loc.lon)
+
+	df$rlat <- ( df$rlat - min(df$rlat) ) / ( max(df$rlat) - min(df$rlat) )
+	df$rlon <- ( df$rlon - min(df$rlon) ) / ( max(df$rlon) - min(df$rlon) )
+
+	df
+}
+
+make_hashtag <- function(x) {
+    tmp <- unlist(strsplit(x, ' '))
+	tolower(grep('^#', tmp, value = T))	
+}
+
+# ---------------
+
+df <- df.orig <- readRDS('data/df.rds')
+df <- clean(df)
+df <- augment(df)
+
+# ----------------
+# Algorithm
+
+# Parameters
+CLOSE_DEF <- 0.95
+HID_DEF   <- 40    # quantile(.8) is good?
+day       <- '2015-04-10'
+
+pre <- df[df$day < day,]
+sub <- df[df$day == day,]
+
+sub$filat <- findInterval(sub$loc.lat, sort(pre$loc.lat))
+sub$filon <- findInterval(sub$loc.lon, sort(pre$loc.lon))
+
+sub <- sub[order(sub$ntime),]
+
+# Distance kernel
+dsub   <- apply(sub[,c('filat', 'filon')], 2, scale)
+k_dist <- kernelMatrix(rbfdot(sigma = 1), dsub)
+
+# Time kernel
+tsub   <- apply(sub[,c('ntime'), drop = F], 2, scale)
+k_tmp  <- kernelMatrix(rbfdot(sigma = 1), tsub)
+
+k               <- (k_dist + k_tmp) / 2
+diag(k)         <- 0
+rownames(k)     <- colnames(k) <- sub$id
+k[lower.tri(k)] <- 0
+
+close_points <- apply(k, 2, function(x) names(sort(x[x > CLOSE_DEF], decreasing = F)))
+sub$is_dense <- sapply(close_points, length) > HID_DEF
+table(sub$is_dense)
+
+sub$cl <- 0
+for(i in 1:nrow(sub)) {
+	if(sub$is_dense[i]) {
+		# Could add something here where
+		# points vote with their text cosine similarity, 
+		# or something
+		cp    <- close_points[[sub$id[i]]]  
+		n_cls <- sub$cl[sub$id %in% cp]
+		tab   <- names(table(n_cls[n_cls != 0]))
+		if(length(tab) == 0) {
+			vote <- max(sub$cl) + 1
+		} else {
+			vote <- as.numeric(tail(sort(tab), 1))
+		}
+		sub$cl[i] <- vote
+	}
+}
+
+dev.off()
+plot(sub[,c('loc.longitude', 'loc.latitude')], 
+	pch = 16,
+	cex = sub$cl == 0, 
+	col = scales::alpha('grey', .1))
+text(sub[sub$cl > 0,c('loc.longitude', 'loc.latitude')], 
+	labels = sub$cl[sub$cl > 0], 
+	cex = 1,
+	col = scales::alpha(sub$cl[sub$cl > 0], .2))
+
+# This is OK, but not wonderful
+# If I'm under time constraints, I could implement this
+
+# Print hashtags
+lapply(split(sub$text[sub$cl > 0], sub$cl[sub$cl > 0]), function(x) {
+	tail(sort(table(make_hashtag(x))), 10)
+})
+
+
+
+
