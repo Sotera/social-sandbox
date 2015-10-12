@@ -8,7 +8,9 @@ var express = require('express'),
     app     = express();
      server = require('http').createServer(app);
 
-var config = require('./config');
+var con = require('./config');
+
+var fs = require('fs');
 
 app.use(require('body-parser').json());
     
@@ -35,17 +37,19 @@ app.post('/scrape', function(req, res) {
 
     var spawn = require('child_process').spawn;
 
-    var child = spawn('nohup',['python', '../python/realtimegeo.py',  '-key', config.instagram_key, 
+    var out = fs.openSync('./out.log', 'a'),
+        err = fs.openSync('./out.log', 'a');
+
+    var child = spawn('nohup',['python', '../../python/realtimegeo.py',  '-key', con.instagram_key, 
       '-start_date', date,  '-bb', [min_lat,min_lon,max_lat,max_lon].join(','), '-es', 
-    'http://10.1.94.103:9200/', '-es_index', idx]);
+    'http://10.1.94.103:9200/', '-es_index', idx],
+      {
+        detached: true,
+        stdio: [ 'ignore', out, err ]
+      }
+     );
 
-    child.stdout.on('data', function (data) {
-      console.log('stdout: ' + data);
-    });
-
-    child.on('error', function (err) {
-            console.log('config.launch_command error', err);
-    });
+    child.unref();
 
     res.send({"sweet":"ok"});
 });

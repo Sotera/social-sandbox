@@ -20,7 +20,7 @@ module.exports = function(app, server, client, config) {
       { topic: kafkaConf['RAW_TOPIC'] }
     ], { autoCommit: true, fetchMaxBytes: 1024 * 100000} );
 
-  const WHITELIST = ['cuba','japan','richmond','suruc','caracas','charleston','boston', 'ukraine', 'southkorea', 'cleveland', 'baltimore', 'isil', 'ny', 'dc', 'waitwhat', 'national_mall', 'la'];
+  const WHITELIST = ['fred','cuba','japan','richmond','suruc','caracas','charleston','boston', 'ukraine', 'southkorea', 'cleveland', 'baltimore', 'isil', 'ny', 'dc', 'waitwhat', 'national_mall', 'la'];
 
   io.sockets.on('connection', function(socket) {
     
@@ -42,7 +42,7 @@ module.exports = function(app, server, client, config) {
     socket.on('init_scrape', function(data, callback) {
       console.log('initating scrape :: ', data);
       request( {
-        url     : "http://10.3.2.75:3000/scrape",
+        url     : "http://localhost:3000/scrape",
         method  : "POST",
         json    : true,
         headers : {
