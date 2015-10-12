@@ -42,7 +42,7 @@ app.post('/scrape', function(req, res) {
 
     var child = spawn('nohup',['python', '../../python/realtimegeo.py',  '-key', con.instagram_key, 
       '-start_date', date,  '-bb', [min_lat,min_lon,max_lat,max_lon].join(','), '-es', 
-    'http://10.1.94.103:9200/', '-es_index', idx],
+    con.es_path, '-es_index', idx],
       {
         detached: true,
         stdio: [ 'ignore', out, err ]
@@ -57,8 +57,8 @@ app.post('/scrape', function(req, res) {
     
 // Setup routes
 var config = {
-	'es_path' : 'http://10.1.94.103:9200',
-	'index'   : 'instagram_remap'
+	'es_path' : con.es_path,
+	'index'   : con.es_index
 };
 
 var client = new es.Client({hosts : [config.es_path]});

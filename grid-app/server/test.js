@@ -12,7 +12,7 @@ bounds = {
 };
 
 request( {
-        url     : "http://10.3.2.75:3000/scrape",
+        url     : "http://localhost:3000/scrape",
         method  : "POST",
         json    : true,
         headers : {
@@ -23,6 +23,6 @@ request( {
 				"comments"       : "",
 				"leaflet_bounds" : bounds,
 				"time"           : "2015-08-15",
-				"user"           : "Brandon Rose"
+				"user"           : "Test User"
 				}
       });
