@@ -1,14 +1,10 @@
 
 // var boxes_to_names = {};
 
-var current_scrape_obj = undefined;
+var current_scrape_obj  = undefined;
 var current_scrape_name = undefined;
 
 var playback = false;
-
-var current_series = [];
-
-var graph = undefined;
 
 var hover_time = undefined;
 
@@ -21,24 +17,21 @@ var eventIcon = L.icon({
 
 $(document).ready(function() {
 // <draw-map>
-	//http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png
-	//https://{s}.tiles.mapbox.com/v3/cwhong.map-hziyh867/{z}/{x}/{y}.png
 	var baseLayer = L.tileLayer('http://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png', {
-	  attribution : "Social Sandbox",
-	  maxZoom     : 18
+        attribution : "Social Sandbox",
+        maxZoom     : 18
 	});
 
 	var map = new L.Map('map', {
-	  center : new L.LatLng(0,0),
-	  zoom   : 2,
-	  layers : [baseLayer]
+        center : new L.LatLng(0,0),
+        zoom   : 2,
+        layers : [baseLayer]
 	});
 
 	var drawnItems = new L.FeatureGroup();
-	map.addLayer(drawnItems);	
-	
+	map.addLayer(drawnItems);
+    	
 	function make_drawControl() {
-		// Draw controls
 		var drawControl = new L.Control.Draw({
 			edit: {
 				featureGroup: drawnItems
@@ -65,7 +58,6 @@ $(document).ready(function() {
 			$('#analyze-btn').css('display', 'inline');
 		});
 
-		
 		map.on('draw:deleted', function(e) {
 			if(drawnItems.getLayers().length == 0) {
 				$('#init-scrape-btn').css('display', 'none');
@@ -75,8 +67,6 @@ $(document).ready(function() {
 	}
 
 	make_drawControl();
-	//rickshaw();
-
 // </draw-map>
 
 // <scrape-management>
@@ -85,35 +75,26 @@ function load_scrapes() {
 		console.log('get_existing :: ', response)
 		_.map(response.types, function(x) {
 			load_scrape(x);
-		});			
+		});
 	});
 }
-
-function placeEvent(event) {
-	//console.log(event);
-	var eventMarker = L.marker([event.event.geoloc.lat,event.event.geoloc.lon],{icon:eventIcon});
-	eventMarker.addTo(map);
-	eventMarker.on('click', function(e) {
-		console.log(event);
-	});
-}
-
 
 // Breaking apart the scrape loading and the scrape settings
 function load_scrape(scrape_name) {
 	socket.emit('load_scrape', scrape_name, function(response) {
-		
-		var geo_bounds = elasticsearch2leaflet(response.geo_bounds);
+        
 		num_scrapes ++;
-		// Color the background of the region, for now at least
+        
+		var geo_bounds = elasticsearch2leaflet(response.geo_bounds);
 		var rec = L.rectangle(geo_bounds, {
 			color       : "red",
 			weight      : 2,
 			fillOpacity : 0
 		});
-		rec.on('click', function(e){ if (current_scrape_name !=  scrape_name) {
-			set_scrape(scrape_name); load_events(scrape_name);
-			} 
+		rec.on('click', function(e){ 
+            if (current_scrape_name !=  scrape_name) {
+    			set_scrape(scrape_name);
+			}
 		});
 		rec.addTo(map)
 
@@ -122,40 +103,6 @@ function load_scrape(scrape_name) {
 		// boxes_to_names[rec._leaflet_id] = response;
 		
 		//map.fitBounds(geo_bounds);
-	});
-}
-
-function load_events(scrape_name) {
-	d3.select("#eventresults").remove();
-	socket.emit('load_events', scrape_name, function(response) {
-		
-		console.log('load_events :: ', response);
-		//_.map(response.events, placeEvent);
-		var t = d3.select("#events").append("table");
-		t.attr("class", "table bordered").attr("id","eventresults");
-		var tr = t.append("thead").append("tr");
-		tr.append("th").text("DateTime");
-		tr.append("th").text("Tags");
-
-		var tbody = t.append("tbody");
-
-		var tr = tbody.selectAll("tr").data(_.sortBy(response.events,function(d){
-			return d.event.datetime;
-		}).reverse()
-		).enter().append("tr");
-
-		tr.append("td").text(function(d){
-			return moment(new Date(d.event.datetime * 1000)).format('MMMM Do YYYY, h:mm:ss');
-		}).on("click",function(d){
-			console.log(d);
-			loadTimeFromEvent(d);
-			
-		});
-		tr.append("td").text(function(d){
-			return _.map(d.event.tags, function(x) {
-				return x.name;
-			}).join();	
-		});
 	});
 }
 
@@ -178,37 +125,99 @@ function set_scrape(scrape_name) {
 	    
 	    map.fitBounds(geo_bounds);
 	    current_scrape_obj = response;
-	    //resetTimeline();
 	    analyze_area(geo_bounds);
 	    d3.select('#images').selectAll("img").remove();
 	    
-	    // analyze_area(geo_bounds);
 	});
 }
 
-function resetTimeline() {
-	d3.select('#chart').remove();
-	d3.select('#timeplot').append("div").attr("id","chart").classed("rickshaw_graph");
-	current_series = [];
-	d3.select('#images').selectAll("img").remove();
-	//rickshaw();
+function load_ned(scrape_name) {
+    d3.select("#eventresults").remove();
+    socket.emit('load_ned', scrape_name, function(response) {
+        // Make table
+        var t = d3.select("#events").append("table");
+        t.attr("class", "table bordered").attr("id","eventresults");
+        
+        var th = t.append("thead").append("tr");
+        th.append("th").text("Date");
+        th.append("th").text("Count");
+
+        var tbody = t.append("tbody");
+        var tr = tbody.selectAll("tr").data(
+            _.sortBy(response.events, function(d) { return - d['count']; })
+        ).enter()
+        .append("tr")
+        .on('click', function(d) {
+            show_ned(d);
+        });
+
+        tr.append("td").append('small').text(function(d){
+            var dates = [
+                moment(new Date(d['created_time']['min'] * 1000)).format('YYYY-MM-DD hh:mm'),
+                moment(new Date(d['created_time']['max'] * 1000)).format('YYYY-MM-DD hh:mm')
+            ]
+            
+            return dates[0] + ' to ' + dates[1];
+        })
+        
+        tr.append("td").text(function(d){
+            return d['count'];
+        });
+        
+        // Add to map, with link to network graph
+        _.map(response.events, function(event) {
+            
+            var geo_bounds = event.location;
+            var southWest  = L.latLng(geo_bounds.lat.min, geo_bounds.lon.max);
+            var northEast  = L.latLng(geo_bounds.lat.max, geo_bounds.lon.min);
+            geo_bounds     = L.latLngBounds(southWest, northEast);
+            
+            var rec = L.rectangle(geo_bounds, {
+                color       : "yellow",
+                weight      : 2,
+                fillOpacity : .25
+            });
+            rec.on('click', function(e){
+                show_ned(event.id);
+            });
+
+            // Add click handler
+            rec.addTo(map)            
+        });
+    });
 }
+
+function show_ned(d) {
+    console.log('show_ned :: ', d);
+    socket.emit('show_ned', d.id, function(response) {
+    
+        
+        
+        render_graph(
+            format_graph(response.detail),
+            {
+                "onHover" : function(node) {
+                    console.log(node);
+                }
+            }
+        );
+    });
+}
+
 
 // </scrape-management>
 
 
 // <socket>
-	var socket = io.connect('http://localhost:3000/');
-	
-	socket.on('give', giver_handler);
-	var line_data = []
 	var grid;
-	function giver_handler(data) {
-		
-		console.log(data);
-		
-		$('#current-date').html(data.current_date);
+	var line_data = []
 
+	var socket = io.connect('http://localhost:3000/');
+	socket.on('give', function(data) {
+        // Update date
+		$('#current-date').html(data.current_date);
+        
+        
 		current_series.push({x:new Date(data.current_date).getTime() / 1000, y:data.count});
 		graph.update();
 		
@@ -263,26 +272,34 @@ function resetTimeline() {
 		}
 		*/
 		
-	}
+	});
 // </socket>
 
 function loadTimeFromEvent(d) {
 	selectedImages = [];
-	//console.log(current_scrape_obj.geo_bounds);
-	var bounds = current_scrape_obj.geo_bounds;
-	var time = new Date(Number(d.event.datetime)).getTime() - (60*30);
+
+	var bounds  = current_scrape_obj.geo_bounds;
+	var time    = new Date(Number(d.event.datetime)).getTime() - (60*30);
 	var endtime = new Date(Number(time)).getTime() + (60*30);
-	console.log(time, endtime);
-	var bounds = {bottom_right:{lat:d.event.geoloc.lat - .005, lon:d.event.geoloc.lon + .005}, top_left:{lat:d.event.geoloc.lat + .005, lon:d.event.geoloc.lon - .005}};
+
+	var bounds = {
+        bottom_right : {
+            lat : d.event.geoloc.lat - .005,
+            lon : d.event.geoloc.lon + .005
+        },
+        top_left : {
+            lat : d.event.geoloc.lat + .005,
+            lon : d.event.geoloc.lon - .005
+        }
+    };
+    
 	d3.select('#images').selectAll("img").remove();
-	socket.emit('load_time', current_scrape_name, time, endtime,
-		bounds, function(response) {
+	socket.emit('load_time', current_scrape_name, time, endtime, bounds, function(response) {
 		console.log('load_time :: ', response)
 		_.map(response.images, function(img) {
 			 draw_image(img);
 			 sidebar_image(img);
 	     });
-					
 	});
 }
 
@@ -298,65 +315,51 @@ function loadTime(time) {
 		bounds = drawnItems.getLayers()[0].getBounds();
 	}
 	d3.select('#images').selectAll("img").remove();
-	socket.emit('load_time', current_scrape_name, time, endtime,
-		bounds, function(response) {
+	socket.emit('load_time', current_scrape_name, time, endtime, bounds, function(response) {
 		console.log('load_time :: ', response)
 		_.map(response.images, function(img) {
 			 draw_image(img);
 			 sidebar_image(img);
 	     });
-					
 	});
 }
 
-function rickshaw() {
-			// set up our data series with 50 random data points
+function rickshaw(current_series) {
+    // Teardown
+    d3.select('#chart').remove();
+    d3.select('#timeplot').append("div").attr("id","chart").classed("rickshaw_graph");
+    d3.select('#images').selectAll("img").remove();
 
-		var seriesData = [ [], [], [] ];
-		var random = new Rickshaw.Fixtures.RandomData(150);
+    var graph = new Rickshaw.Graph( {
+        element  : document.getElementById("chart"),
+        width    : $('#chart').width(),
+        height   : $('#chart').height(),
+        renderer : 'line',
+        series: [
+            {
+                color : "white",
+                data  : current_series,
+                name  : current_scrape_name
+            }
+        ]
+    } );
 
-		for (var i = 0; i < 150; i++) {
-			random.addData(seriesData);
-		}
+    graph.render();
 
-		// instantiate our graph!
+    var hoverDetail = new Rickshaw.Graph.HoverDetail( {
+        graph     : graph,
+        formatter : function(series, x, y) {
+            hoverTime = x;
+            return y;
+        }
+    });
 
-		//console.log(seriesData[0]);
+    var axes = new Rickshaw.Graph.Axis.Time({ 'graph' : graph });
+    axes.render();
 
-		graph = new Rickshaw.Graph( {
-			element: document.getElementById("chart"),
-			width: 600,
-			height: 250,
-			renderer: 'line',
-			series: [
-				{
-					color: "white",
-					data: current_series,
-					name: current_scrape_name
-				}
-			]
-		} );
-
-		graph.render();
-
-		var hoverDetail = new Rickshaw.Graph.HoverDetail( {
-			graph: graph,
-			formatter: function(series, x, y) {
-				//console.log(x,y);
-				hoverTime = x;
-				return y;
-			}
-		} );
-
-		var axes = new Rickshaw.Graph.Axis.Time( {
-			graph: graph
-		} );
-		axes.render();
-
-		$('#chart').on('click', function() {
-			console.log('clicked',hoverTime);
-			loadTime(hoverTime);
-		});
+    $('#chart').on('click', function() {
+        loadTime(hoverTime);
+    });
 }
 
 // <analyzing area>
@@ -364,16 +367,12 @@ function analyze_area(area) {
 	socket.emit('analyze_area', area, function(data) {
 		console.log('analyze_area :: ', data)
 
-		resetTimeline();
-		line_data = data.timeseries;
-		//console.log(line_data);
-
-		var rd = _.map(line_data, function(d){
-			return {x:new Date(d.date).getTime() / 1000, y:d.count};
-		});
-		console.log(rd);
-		current_series = rd;
-		rickshaw();
+		rickshaw(_.map(data.timeseries, function(d){
+			return {
+                "x" : new Date(d.date).getTime() / 1000,
+                "y" : d.count
+            };
+		}));
 
 		/*
 		setTimeout(function(){
@@ -392,7 +391,6 @@ function analyze_area(area) {
 			draw_grid(grid, data.grid)
 		}
 		*/
-
 	});
 }
 // <analyzing area>
@@ -743,9 +741,8 @@ function analyze_area(area) {
 // </GRAPH>
 
 // <events>
-	$('#start-stream').on('click', function() {		
-		resetTimeline();
-		rickshaw();
+	$('#start-stream').on('click', function() {
+		rickshaw([]);
 		playback = true;
 		socket.emit('start_giver', function() {
 			console.log('start_giver :: ');
@@ -763,8 +760,7 @@ function analyze_area(area) {
 
 	$('#go-live').on('click', function() {
 		playback = false;
-		resetTimeline();
-		rickshaw();
+		rickshaw([]);
 		socket.emit('realtime', function() {
 			console.log('realtime :: ');
 			// ... nothing else yet ...
@@ -785,8 +781,6 @@ function analyze_area(area) {
 			});
 		});	
 	});
-
-
 
 	$('#analyze-btn').on('click', function() {
 		/*
@@ -820,6 +814,9 @@ function analyze_area(area) {
 		
 		$('#init-modal').modal('hide');
 	})
+    
+    load_ned();
+
 
 	/*			
 		// Click on button to start a new scrape
@@ -869,8 +866,8 @@ load_scrapes();
 
 // <helpers>
 function elasticsearch2leaflet(geo_bounds) {
-	var southWest  = L.latLng(geo_bounds.bottom_right.lat, geo_bounds.top_left.lon);
-	var northEast  = L.latLng(geo_bounds.top_left.lat, geo_bounds.bottom_right.lon);
+	var southWest = L.latLng(geo_bounds.bottom_right.lat, geo_bounds.top_left.lon);
+	var northEast = L.latLng(geo_bounds.top_left.lat, geo_bounds.bottom_right.lon);
 	return L.latLngBounds(southWest, northEast);
 }
 // </helpers>

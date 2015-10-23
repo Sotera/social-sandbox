@@ -1,20 +1,21 @@
 
 module.exports = function(app, server, client, config) {
-  var io    = require('socket.io').listen(server, { log : false });
-  // var kafka = require('kafka-node');
-  var _     = require('underscore');
-  var Giver = require('./giver');
-  var request = require('request');
-  var kafka = require('kafka-node');
+  var io       = require('socket.io').listen(server, { log : false });
+  var _        = require('underscore');
+  var request  = require('request');
+  var kafka    = require('kafka-node');
+  var es       = require('elasticsearch');
 
-  var config = require('./config');
+  var config   = require('./config'),
+      Giver    = require('./giver'),
+      NedGiver = require('./nedGiver');
 
   var kafkaConf = {
      'KAFKA'      : 'memex-zk01:2181',
      'RAW_TOPIC'  : 'instagram_event'
   };
 
-  // // Kafka consumer
+  // Kafka consumer
   var kclient   = new kafka.Client(kafkaConf['KAFKA']),
       consumer = new kafka.Consumer( kclient, [ 
       { topic: kafkaConf['RAW_TOPIC'] }
@@ -24,13 +25,21 @@ module.exports = function(app, server, client, config) {
 
   io.sockets.on('connection', function(socket) {
     
+    // ****
+    // var nedClient = new es.Client({hosts : ['http://localhost:9205/']});
+    // var nedGiver  = new NedGiver(nedClient, socket, 'event')
+    // nedGiver.set_temp_bounds({"start_date" : new Date('2015-10-01'), "end_date" : new Date('2015-10-30')});
+    // socket.on('start_ned', function(cb) {nedGiver.start(); cb();})
+    // socket.on('stop_ned',  function(cb) {nedGiver.stop(); cb();})
+    // ****
+    
     // Giver
     var giver = new Giver(client, socket, config.index);
     // giver.set_temp_bounds({"start_date" : new Date('2015-04-01'), "end_date" : new Date('2015-04-30')});
     
-    socket.on('stop_giver', function(cb)  { giver.stop(); cb(); });
+    socket.on('stop_giver',  function(cb) { giver.stop(); cb(); });
     socket.on('start_giver', function(cb) { giver.start(); cb(); });
-    socket.on('realtime', function(cb) { giver.go_live(); cb(); });
+    socket.on('realtime',    function(cb) { giver.go_live(); cb(); });
 
     socket.on('load_time', function(current_scrape_name, starttime, endtime, geo_bounds, callback) {
         giver.get_image_data_slice(new Date(starttime*1000), new Date((new Date(endtime*1000))), geo_bounds, function(response) {
@@ -61,15 +70,13 @@ module.exports = function(app, server, client, config) {
       client.indices.getMapping({
         index : config['index']
       }).then(function(response) {
-        console.log(response.instagram_remap.mappings);
         callback({
           'types' : _(response.instagram_remap.mappings)
-                    .keys()
-                    .filter(function(d) {
-                      return _.contains(WHITELIST, d)
-                    })
+            .keys()
+            .filter(function(d) {
+              return _.contains(WHITELIST, d)
+            })
         });
-        
       });
     });
     
@@ -87,25 +94,36 @@ module.exports = function(app, server, client, config) {
     });
     
     socket.on('load_scrape', function(scrape_name, callback) {
-      console.log('load_scrape :: ', scrape_name);
-      giver.get_scrape(scrape_name, function(scrape) {
-        callback(scrape);
-      });
-
+        console.log('load_scrape :: ', scrape_name);
+        giver.get_scrape(scrape_name, function(scrape) {
+            callback(scrape);
+        });
     });
 
     socket.on('load_events', function(scrape_name, callback) {
-      console.log('load_events :: ', scrape_name);
-      giver.get_events(scrape_name, function(events) {
-        callback(events);
-      });
+        console.log('load_events :: ', scrape_name);
+        giver.get_events(scrape_name, function(events) {
+            callback(events);
+        });
+    });
+    
+    socket.on('load_ned', function(scrape_name, callback) {
+        console.log('load_ned :: ', scrape_name);
+        giver.get_ned(scrape_name, function(ned) {
+            callback(ned);
+        });
+    });
 
+    socket.on('show_ned', function(cluster, callback) {
+        console.log('show_ned :: ', cluster);
+        giver.show_ned(cluster, function(ned_detail) {
+            callback(ned_detail);
+        });
     });
 
     socket.on('analyze_area', function(area, callback) {
       console.log('area :: ', area);
       giver.analyze_area(area, function(response) {
-        console.log('analyze_area :: ', response);
         callback(response)
       });
     });

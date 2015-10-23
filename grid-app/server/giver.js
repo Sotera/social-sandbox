@@ -5,17 +5,23 @@ var async    = require('async');
 var helpers  = require('./helpers');
 var moment   = require('moment');
 
+var es          = require('elasticsearch');
+var localClient = new es.Client({hosts : ['http://localhost:9205/']});
+
+var NewEventDetector = require('./events');
+
 function Giver(client, socket, index) {
 	
+    this.ned         = new NewEventDetector();
 	this.index       = index;
-	this.scrape_name = undefined,
+	this.scrape_name = undefined;
 	
 	this.client = client;
 	this.socket = socket;
 
 	this.temp_bounds  = undefined;
 
-	this.current_date     = undefined;
+	this.current_date = undefined;
 
 	// Streaming Settings
 	//
@@ -42,37 +48,90 @@ function Giver(client, socket, index) {
 	this._max_images = 1000;
 }
 
-Giver.prototype.get_events = function(doc_type, cb) {
-	var _this = this;
-	var query = {
-		"size"  : 9000
-	};
-	
-	console.log('query', JSON.stringify(query));
-	
-	this.client.search({
-		index : "instagram_events_j_final",
-		type  : doc_type,
-		body  : query
-	}).then(function(response) {
-		var out = _.chain(response.hits.hits).map(function(hit) {
-			return {
-				'event' : hit._source
-				/*
-				'img_url' : hit._source.images.low_resolution.url,
-				'id'      : hit._source.id,
-				'link'    : hit._source.link,
-				'user'    : hit._source.user.username,
-				'user_id' : hit._source.user.id
-				*/
-			}
-		}).value()
-		cb({'events' : out});
-	});
-}
-
 // <set-scrape>
 // Gets the parameters of a scrape
+Giver.prototype.get_events = function(doc_type, cb) {
+    this.client.search({
+        index : "instagram_events_j_final",
+        type  : doc_type,
+        body  : { "size"  : 9000 }
+    }).then(function(response) {
+        var out = _.chain(response.hits.hits).map(function(hit) {
+            return {
+                'event' : hit._source
+            }
+        }).value()
+        cb({'events' : out});
+    });
+}
+
+Giver.prototype.show_ned = function(cluster_id, cb) {
+    var _this = this;
+    
+    console.log(this.ned.cluster_to_id);
+    
+    var query = {
+        "size"  : 999,
+        "query" : {
+            "terms" : {
+                "_id" : this.ned.cluster_to_id[cluster_id]
+            }
+        }
+    }
+    
+    localClient.search({
+        index : 'event',
+        type  : 'sims',
+        body  : query
+    }).then(function(response) {
+        _this.ned.set_detail(_.pluck(response.hits.hits, '_source'));
+        
+        cb({
+            'detail' : _this.ned.make_graph(response.hits.hits)
+        });
+    });
+}
+
+Giver.prototype.get_ned = function(doc_type, cb) {
+    var _this = this;
+    
+    var query = {
+      "size" : 99999,
+      "sort": [
+        {
+          "created_time": {
+            "order": "asc"
+          }
+        }
+      ],
+      "query": {
+        "range": {
+          "created_time": {
+            "from": 1443657600000,
+            "to": 1443744000000
+          }
+        }
+      }
+    }
+    
+    localClient.search({
+        index : 'event',
+        type  : 'sims',
+        body  : query
+    }).then(function(response) {
+        console.log('ned response ::', response);
+        _.map(response.hits.hits, function(x) {
+            _this.ned.update({
+                'target'       : x['_source']['id'],
+                'created_time' : x['_source']['created_time'],
+                'location'     : x['_source']['location'],
+                'cands'        : x['_source']['sims']
+            })
+        });
+        cb({ 'events' : _this.ned.summarize() });
+    });
+}
+
 Giver.prototype.get_scrape = function(scrape_name, cb) {
 	var query = {
 		// "size" : 0,
@@ -90,8 +149,6 @@ Giver.prototype.get_scrape = function(scrape_name, cb) {
 		}
 	}
 
-	console.log(scrape_name, this.index);
-
 	this.client.search({
 		index      : this.index,
 		type       : scrape_name,
@@ -99,8 +156,6 @@ Giver.prototype.get_scrape = function(scrape_name, cb) {
         searchType : "count",
         queryCache : true
 	}).then(function(response) {
-		console.log(response);
-		// Response
 		cb({
 			"scrape_name" : scrape_name,
 			"geo_bounds"  : response.aggregations.geo_bounds.bounds,
@@ -137,7 +192,6 @@ Giver.prototype.set_scrape = function(scrape_name, cb) {
 Giver.prototype.start = function() {
 	var _this = this;
 	if(this.scrape_name) {
-		console.log('starting giver...')
 		this.running  = true;
 		this._process = this.give();		
 	} else {
@@ -158,11 +212,11 @@ Giver.prototype.restart = function() {
 }
 
 Giver.prototype.go_live = function() {
-	this.live = true;
-	this.interval          = 'second';
-	this.every_interval    = 10;
-	this._speed      = 10000;
-	this.current_date = new Date( (new Date)*1 - 1000*300 );
+	this.live            = true;
+	this.interval        = 'second';
+	this.every_interval  = 10;
+	this._speed          = 10000;
+	this.current_date    = new Date( (new Date)*1 - 1000*300 );
 	this.restart();
 }
 
@@ -215,7 +269,6 @@ Giver.prototype.get_data = function(cb) {
 		// Combine results
 		var out = _.reduce(results, function(a, b) {return _.extend(a, b)}, {})
 		out['current_date'] = _this.current_date;
-		console.log('get_data :: ', out);
 		cb(out)
 	});		
 }
@@ -359,7 +412,7 @@ Giver.prototype.get_ts_data = function(start_date, end_date, full_unit, cb) {
 			}
 		}
 	}
-	console.log('comp2', JSON.stringify(query));
+    
 	this.client.search({
 		index : this.index,
 		type  : this.scrape_name,
@@ -387,8 +440,6 @@ Giver.prototype.get_event_data = function(start_date, end_date, cb) {
 			}
 		}
 	}
-	
-	console.log('query', JSON.stringify(query));
 	
 	this.client.search({
 		index : "instagram_events_j_final",
@@ -424,8 +475,6 @@ Giver.prototype.get_image_data = function(start_date, end_date, cb) {
 			}
 		}
 	}
-	
-	console.log('comp1', JSON.stringify(query));
 	
 	this.client.search({
 		index : this.index,
@@ -475,8 +524,6 @@ Giver.prototype.get_image_data_slice = function(start_date, end_date, area, cb) 
 			}
 		}
 	};
-	
-	console.log('query', JSON.stringify(query));
 	
 	this.client.search({
 		index : this.index,
@@ -628,7 +675,6 @@ Giver.prototype.analyze_ts_data = function(area, cb) {
 // ---- Processing functions ----
 function terms_timeseries(x) {
 	return _.map(x, function(b) {
-		console.log(b.key);
 		return {
 			"key" : b.key,
 			"timeseries" : _.map(b.timeseries.buckets, function(x) {

@@ -64,7 +64,7 @@ var config = {
 var client = new es.Client({hosts : [config.es_path]});
 
 // require('./routes.js')(app, client, config);
-require('./socket.js')(app, server, client, config);
+require('./socket')(app, server, client, config);
 
 server.listen(3000, function() {
   console.log("Started a server on port 3000");
