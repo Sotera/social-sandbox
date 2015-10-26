@@ -15,8 +15,6 @@ RickshawS3C.prototype.reset = function() {
     
     d3.select('#timeplot').append("div").attr("id","chart");
     d3.select('#timeplot').append("div").attr("id","preview");
-    
-    d3.select('#images').selectAll("img").remove();
 }
 
 RickshawS3C.prototype.update = function(x) {

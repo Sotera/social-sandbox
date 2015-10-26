@@ -136,7 +136,9 @@ function set_scrape(scrape_name) {
 	    
 	    map.fitBounds(geo_bounds);
 	    current_scrape_obj = response;
-	    analyze_area(geo_bounds);
+	    analyze_area({
+            "area" : geo_bounds
+        });
 	    d3.select('#images').selectAll("img").remove(); 
 	});
 }
@@ -164,8 +166,8 @@ function load_ned(start_date, end_date) {
 
         tr.append("td").append('small').text(function(d){
             var dates = [
-                moment(new Date(d['created_time']['min'] * 1000)).format('YYYY-MM-DD hh:mm'),
-                moment(new Date(d['created_time']['max'] * 1000)).format('YYYY-MM-DD hh:mm')
+                moment(new Date(d['created_time']['min'] * 1000)).format('YYYY-MM-DD HH:mm'),
+                moment(new Date(d['created_time']['max'] * 1000)).format('YYYY-MM-DD HH:mm')
             ]
             
             return dates[0] + ' to ' + dates[1];
@@ -199,6 +201,12 @@ function load_ned(start_date, end_date) {
 function show_ned(event) {
     console.log('show_ned :: ', event);
     
+    // Show timeline
+    analyze_area({
+        "cluster_id" : event.id
+    });
+    
+    // Show images
     d3.select('#images').selectAll("img").remove();
     socket.emit('show_ned_images', event.id, function(response) {
         _.map(response.images, function(img) {
@@ -206,12 +214,15 @@ function show_ned(event) {
         });
     });
     
+    // Show graph
     socket.emit('show_ned', event.id, function(response) {
         render_graph(
             format_graph(response.detail),
             {
                 "onHover" : function(node) {
-//                    console.log(node);
+                    socket.emit('url_from_id', node.id, function(d) {
+                        m = draw_image(d);
+                    });
                 }
             }
         );
@@ -344,10 +355,13 @@ function loadTime(time) {
 }
 
 // <analyzing area>
-function analyze_area(area) {
-	socket.emit('analyze_area', area, function(data) {
+// All this does right now is show the timeseries
+function analyze_area(params) {
+	socket.emit('analyze_area', params, function(data) {
 		console.log('analyze_area :: ', data)
-		rickshaw_graph.init(_.map(data.timeseries, function(d){
+		
+        // Show timeseries
+        rickshaw_graph.init(_.map(data.timeseries, function(d){
 			return {
                 "x" : new Date(d.date).getTime() / 1000,
                 "y" : d.count
@@ -491,13 +505,11 @@ function analyze_area(area) {
 		});
 		m.addTo(map);
 		
-		setTimeout(function(){ 
-			map.removeLayer(m);
-		}, 6000);
+		setTimeout(function(){  map.removeLayer(m); }, 2000);
 		
 		imageHash[d.img_url] = d;
 		
-		d3.select("img[src=\"" +d.img_url + "\"]").transition()
+		d3.select("img[src=\"" + d.img_url + "\"]").transition()
 			.duration(6000)
 			.style("opacity", 0);
 			
@@ -517,6 +529,8 @@ function analyze_area(area) {
 			.on("click",function(d){
 				window.open(imageHash[this.src].link, '_blank');
 			});
+        
+        return m;
 	}
 
 	function draw_user_image(d) {
@@ -750,12 +764,9 @@ function analyze_area(area) {
     load_ned(undefined, undefined); 
     
 	$('#analyze-btn').on('click', function() {
-		/*
-			STUB FOR LOADING SIDE BAR WITH IMAGES, POPULATING TIME SERIES, AND POPULATING EVENTS FOR GIVEN AREA.
-			THIS SAME FUNCTION SHOULD BE USED WHEN CLICKING AN 'EVENT'.  ONLY DIFFERENCE IS ENTRY POINT.
-		*/
-		console.log(drawnItems.getLayers()[0].getBounds());
-		analyze_area(drawnItems.getLayers()[0].getBounds());
+		analyze_area({
+            "area" : drawnItems.getLayers()[0].getBounds()
+        });
 	});
 
 	$('#comment-btn').on('click', function() {

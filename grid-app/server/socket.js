@@ -122,13 +122,19 @@ module.exports = function(app, server, client, config) {
         });
     });
 
+    socket.on('url_from_id', function(id, callback) {
+        console.log('url_from_id :: ', id);
+        giver.url_from_id(id, function(d) {
+            callback(d);
+        });
+    });
     // >>
 
-    socket.on('analyze_area', function(area, callback) {
-      console.log('area :: ', area);
-      giver.analyze_area(area, function(response) {
-        callback(response)
-      });
+    socket.on('analyze_area', function(params, callback) {
+        console.log('params :: ', params);
+        giver.analyze_area(params, function(response) {
+            callback(response)
+        });
     });
 
     socket.on('disconnect', function(){
