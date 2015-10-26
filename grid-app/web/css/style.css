@@ -126,6 +126,11 @@
   stroke-width: 2px;
 }
 
+.btn-primary {
+    background : none;
+    border     : 1px solid grey;
+}
+
 /**/
 
   circle.ping {

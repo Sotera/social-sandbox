@@ -4,6 +4,9 @@
 var current_scrape_obj  = undefined;
 var current_scrape_name = undefined;
 
+var start_date = undefined;
+var end_date   = undefined;
+
 var playback = false;
 
 var hover_time = undefined;
@@ -15,7 +18,13 @@ var eventIcon = L.icon({
     iconSize:     [25, 25]
 });
 
-var rickshaw_graph = new RickshawS3C();
+var rickshaw_graph = new RickshawS3C({
+    "date_callback" : function(_min_date, _max_date) {
+        min_date = _min_date;
+        max_date = _max_date;
+        $('#events-btn').css('display', 'inline');
+    }
+});
 
 $(document).ready(function() {
 // <draw-map>
@@ -128,14 +137,14 @@ function set_scrape(scrape_name) {
 	    map.fitBounds(geo_bounds);
 	    current_scrape_obj = response;
 	    analyze_area(geo_bounds);
-	    d3.select('#images').selectAll("img").remove();
-	    
+	    d3.select('#images').selectAll("img").remove(); 
 	});
 }
 
-function load_ned(scrape_name) {
+function load_ned(start_date, end_date) {
     d3.select("#eventresults").remove();
-    socket.emit('load_ned', scrape_name, function(response) {
+    socket.emit('load_ned', start_date, end_date, function(response) {
+        
         // Make table
         var t = d3.select("#events").append("table");
         t.attr("class", "table bordered").attr("id","eventresults");
@@ -179,9 +188,7 @@ function load_ned(scrape_name) {
                 weight      : 2,
                 fillOpacity : .25
             });
-            rec.on('click', function(e){
-                show_ned(event);
-            });
+            rec.on('click', function(e){ show_ned(event); });
 
             // Add click handler
             rec.addTo(map)            
@@ -736,6 +743,12 @@ function analyze_area(area) {
 		});	
 	});
 
+    $('#events-btn').on('click', function() {
+        load_ned(min_date, max_date); 
+    });
+
+    load_ned(undefined, undefined); 
+    
 	$('#analyze-btn').on('click', function() {
 		/*
 			STUB FOR LOADING SIDE BAR WITH IMAGES, POPULATING TIME SERIES, AND POPULATING EVENTS FOR GIVEN AREA.
@@ -767,11 +780,8 @@ function analyze_area(area) {
 		});		
 		
 		$('#init-modal').modal('hide');
-	})
+	});
     
-    load_ned();
-
-
 	/*			
 		// Click on button to start a new scrape
 		$('#start-new-scrape').on('click', function() {
@@ -810,6 +820,7 @@ function analyze_area(area) {
 // <init>
 //$('#first-modal').modal('show');
 $('#init-scrape-btn').css('display', 'none');
+$('#events-btn').css('display', 'none');
 $('#analyze-btn').css('display', 'none');
 $('#comment-btn').css('display', 'none');
 $('#show-user-btn').css('display', 'none');

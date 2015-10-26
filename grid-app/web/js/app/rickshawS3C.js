@@ -1,6 +1,11 @@
-function RickshawS3C() {
-    this.graph = undefined;
-    this.data  = undefined;
+function RickshawS3C(params) {
+    this.graph   = undefined;
+    this.data    = undefined;
+    this.preview = undefined;
+
+    this.date_callback = params.date_callback || undefined;
+    this.min_date = undefined;
+    this.max_date = undefined;
 }
 
 RickshawS3C.prototype.reset = function() {
@@ -57,7 +62,16 @@ RickshawS3C.prototype.init = function(data) {
         graph   : this.graph,
         element : document.getElementById('preview')
     });
+    
+    console.log(preview);
+    preview.onSlide(function(e, min_date, max_date) {
+        this.min_date = min_date;
+        this.max_date = max_date;
+        this.date_callback(min_date, max_date);
+    }.bind(this));
 
+    this.preview = preview;
+    
     this.graph.render();
 
     $('#chart').on('click', function() {

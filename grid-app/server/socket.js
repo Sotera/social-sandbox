@@ -26,7 +26,7 @@ module.exports = function(app, server, client, config) {
   io.sockets.on('connection', function(socket) {
         
     // Giver
-    var giver = new Giver(client, socket, config.index);
+    var giver = new Giver(client, socket, config.es_index);
     // giver.set_temp_bounds({"start_date" : new Date('2015-04-01'), "end_date" : new Date('2015-04-30')});
     
     socket.on('stop_giver',  function(cb) { giver.stop(); cb(); });
@@ -101,9 +101,9 @@ module.exports = function(app, server, client, config) {
     
     // <<
     
-    socket.on('load_ned', function(scrape_name, callback) {
-        console.log('load_ned :: ', scrape_name);
-        giver.load_ned(scrape_name, function(ned) {
+    socket.on('load_ned', function(start_date, end_date, callback) {
+        console.log('load_ned :: ', start_date, end_date);
+        giver.load_ned(start_date, end_date, function(ned) {
             callback(ned);
         });
     });

@@ -4,7 +4,7 @@ const HIGHLIGHT_COLOR = 'rgba(0, 0, 255, 1)';
 var state = {
     xvar      : 'lon',
     yvar      : 'lat',
-    threshold : .2,
+    threshold : .4,
 }
 
 function format_graph(data) {
@@ -40,7 +40,6 @@ function render_graph(data, callbacks) {
         network.set_filter(state.threshold);
     
     // Create a grapher instance (width, height, options)
-    console.log(network.filtered);
     var grapher = new Grapher({
         canvas : document.getElementById('graph'),
         width  : width,
@@ -60,7 +59,7 @@ function render_graph(data, callbacks) {
             .friction(.5)
             .start()
     }
-        
+            
     var force = make_force();
 
     function getNodeIdAt(point) {
@@ -91,8 +90,9 @@ function render_graph(data, callbacks) {
         // Update data in grapher (so display changes)
         grapher.data(network.filtered);
         
-        // Update data in force directed algorithm    
+        // Update data in force directed algorithm
         force.links(network.filtered.links);
+        force.start();
     }
 
     // On mousedown, get ready for drag
@@ -163,7 +163,7 @@ function render_graph(data, callbacks) {
             state.xvar = cycle[ref][0];
             state.yvar = cycle[ref][1];
             
-            network.fix_dims(state.xvar, state.yvar);
+            // network.fix_dims(state.xvar, state.yvar);
             grapher.data(network.filtered);
             
             if(force.set_p) { force.set_p(); }
@@ -259,8 +259,6 @@ function init_network(data, params) {
                 color  : 'rgba(' + link.sim * 255 + ', ' + 0 + ', ' + 0 + ', ' + 2 * link.sim + ')',
                 r      : .1
             })
-        } else {
-            return undefined;
         }
     }).filter(function(x) {return x != undefined}).value();
                 
@@ -269,31 +267,33 @@ function init_network(data, params) {
         if(threshold) { this.threshold = threshold; }
         
         var links_sub = _.filter(this.links, function(link) {
-            return link.sim > this.threshold
-        }.bind(this));
+            return link.sim > threshold
+        });
         
+        console.log(links_sub);
+                
         this.filtered = {
-            "nodes" : this.nodes,
+            "nodes" : network.nodes,
             "links" : links_sub
         };
     }
     
-    network.fix_dims = function(x, y) {
-        this.nodes = _.map(this.nodes, function(node) {
-            if(x) { node.x = node[x] * params.width;  }
-            if(y) { node.y = node[y] * params.height; }
-            return node
-        });
-    }
+    // network.fix_dims = function(x, y) {
+    //     this.nodes = _.map(this.nodes, function(node) {
+    //         if(x) { node.x = node[x] * params.width;  }
+    //         if(y) { node.y = node[y] * params.height; }
+    //         return node
+    //     });
+    // }
     
     network.toggle_rainbow = function() {
         console.log('toggling rainbow');
         this.use_rainbow = !this.use_rainbow;
-        this.nodes = _.map(this.nodes, function(node) {
+        this.nodes       = _.map(this.nodes, function(node) {
             node.color = make_color(1 - node.scaled_time, this.use_rainbow);
             return node
         }.bind(this));
     }
-    
+
     return network;
 }

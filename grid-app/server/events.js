@@ -1,7 +1,7 @@
 var _      = require('underscore')._;
 
 function Events() {
-    this.thresh            = 0.45;
+    this.thresh            = 0.4;
     this.n                 = 0;
     this.cluster_summaries = {};
     this.id_to_cluster     = {};
@@ -72,13 +72,11 @@ Events.prototype.update = function(x) {
     var _this = this;
     
     var source  = x['target'];
-    console.log('source', source);
     var targets = _.chain(x['cands'])
         .filter(function(x) {return x.sim > _this.thresh})
         .pluck('id')
         .filter(function(x) {return x != source})
         .value();
-    console.log('targets', targets);
     
     this.id_to_cluster[source] = this.n;
     this.cluster_to_id[this.n] = [source]
@@ -94,7 +92,7 @@ Events.prototype.update = function(x) {
     this.n = this.n + 1;
 }
 
-Events.prototype.summarize = function() {
+Events.prototype.summarize = function() {    
     return _.chain(this.cluster_summaries)
         .filter(function(x) {return x.count > 10})
         .sortBy(function(x) {return x.count})
