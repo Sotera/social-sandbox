@@ -1,7 +1,7 @@
 var _      = require('underscore')._;
 
 function Events() {
-    this.thresh            = 0;
+    this.thresh            = 0.45;
     this.n                 = 0;
     this.cluster_summaries = {};
     this.id_to_cluster     = {};
@@ -19,71 +19,76 @@ Events.prototype.update_cluster_to_id = function(cluster_id) {
     delete this.cluster_to_id[cluster_id]
 }
 
-Events.prototype.update_cluster_summaries = function(x, cluster_id) {
+// BUG -- these counts are wrong because I'm overwriting this.cluster_summaries[this.n]
+Events.prototype.update_cluster_summaries = function(cluster_id) {
 
+    var x    = this.cluster_summaries[this.n];
     var prev = this.cluster_summaries[cluster_id];
-    if(!prev) {
+    if(prev) {
         this.cluster_summaries[this.n] = {
             'id'    : this.n,
-            'count' : 1,
+            'count' : prev['count'] + x['count'],
             'location'     : {
                 'lat' : {
-                    'min' : x['location']['latitude'],
-                    'max' : x['location']['latitude'],
+                    'min' : _.min([x['location']['lat']['min'], prev['location']['lat']['min']]),
+                    'max' : _.max([x['location']['lat']['max'], prev['location']['lat']['max']]),
                 },
                 'lon' : {
-                    'min' : x['location']['longitude'],
-                    'max' : x['location']['longitude'],
+                    'min' : _.min([x['location']['lon']['min'], prev['location']['lon']['min']]),
+                    'max' : _.max([x['location']['lon']['max'], prev['location']['lon']['max']]),
                 }
             },
             'created_time' : {
-                'min' : x['created_time'],
-                'max' : x['created_time'],
-            }
-        }
-    } else {
-        this.cluster_summaries[this.n] = {
-            'id'    : this.n,
-            'count' : prev['count'] + 1,
-            'location'     : {
-                'lat' : {
-                    'min' : _.min([x['location']['latitude'], prev['location']['lat']['min']]),
-                    'max' : _.max([x['location']['latitude'], prev['location']['lat']['max']]),
-                },
-                'lon' : {
-                    'min' : _.min([x['location']['longitude'], prev['location']['lon']['min']]),
-                    'max' : _.max([x['location']['longitude'], prev['location']['lon']['max']]),
-                }
-            },
-            'created_time' : {
-                'min' : _.min([x['created_time'], prev['created_time']['min']]),
-                'max' : _.max([x['created_time'], prev['created_time']['max']]),
+                'min' : _.min([x['created_time']['min'], prev['created_time']['min']]),
+                'max' : _.max([x['created_time']['max'], prev['created_time']['max']]),
             }
         }
     }
-
     delete this.cluster_summaries[cluster_id];
+}
+
+Events.prototype.init_cluster_summary = function(x) {
+    this.cluster_summaries[this.n] = {
+        'id'    : this.n,
+        'count' : 1,
+        'location'     : {
+            'lat' : {
+                'min' : x['location']['latitude'],
+                'max' : x['location']['latitude'],
+            },
+            'lon' : {
+                'min' : x['location']['longitude'],
+                'max' : x['location']['longitude'],
+            }
+        },
+        'created_time' : {
+            'min' : x['created_time'],
+            'max' : x['created_time'],
+        }
+    }
 }
 
 Events.prototype.update = function(x) {
     var _this = this;
     
     var source  = x['target'];
+    console.log('source', source);
     var targets = _.chain(x['cands'])
         .filter(function(x) {return x.sim > _this.thresh})
         .pluck('id')
         .filter(function(x) {return x != source})
         .value();
+    console.log('targets', targets);
     
     this.id_to_cluster[source] = this.n;
     this.cluster_to_id[this.n] = [source]
+    this.init_cluster_summary(x);
     
     var neib_clusters = _.chain(targets).map(function(t) {return _this.id_to_cluster[t]}).filter().uniq().value();
-    
     _.map(neib_clusters, function(c) {        
         this.update_id_to_cluster(c);
         this.update_cluster_to_id(c);
-        this.update_cluster_summaries(x, c);
+        this.update_cluster_summaries(c);
     }.bind(this));
     
     this.n = this.n + 1;

@@ -1,16 +1,15 @@
 
 // Dependencies
 var es = require('elasticsearch'),
+    fs = require('fs'),
 	_  = require('underscore')._;
 
 // Express server
 var express = require('express'),
-    app     = express();
+        app = express(),
      server = require('http').createServer(app);
 
 var con = require('./config');
-
-var fs = require('fs');
 
 app.use(require('body-parser').json());
     
@@ -32,8 +31,9 @@ app.post('/scrape', function(req, res) {
     var min_lon = req.body.leaflet_bounds._southWest.lng;
     var max_lat = req.body.leaflet_bounds._northEast.lat;
     var max_lon = req.body.leaflet_bounds._northEast.lng;
-    var idx = req.body.name;
-    var date = req.body.time.replace(/-/g,'') + '00'
+    
+    var idx     = req.body.name;
+    var date    = req.body.time.replace(/-/g,'') + '00'
 
     var spawn = require('child_process').spawn;
 

@@ -1,11 +1,11 @@
 
-var _        = require('underscore')._;
-var ngeohash = require('ngeohash');
-var async    = require('async');
-var helpers  = require('./helpers');
-var moment   = require('moment');
-
-var es          = require('elasticsearch');
+var _        = require('underscore')._,
+    ngeohash = require('ngeohash'),
+       async = require('async'),
+     helpers = require('./helpers'),
+      moment = require('moment'),
+          es = require('elasticsearch');
+          
 var localClient = new es.Client({hosts : ['http://localhost:9205/']});
 
 var NewEventDetector = require('./events');
@@ -49,26 +49,47 @@ function Giver(client, socket, index) {
 }
 
 // <set-scrape>
-// Gets the parameters of a scrape
-Giver.prototype.get_events = function(doc_type, cb) {
-    this.client.search({
-        index : "instagram_events_j_final",
-        type  : doc_type,
-        body  : { "size"  : 9000 }
-    }).then(function(response) {
-        var out = _.chain(response.hits.hits).map(function(hit) {
-            return {
-                'event' : hit._source
+Giver.prototype.show_ned_images = function(cluster_id, cb) {
+    var query = {
+        "size"    : 999,
+        "_source" : ["location", "created_time", "images.low_resolution.url", "id", "link", "user"],
+        "sort"    : [{
+            "created_time": {
+                "order": "asc"
             }
-        }).value()
-        cb({'events' : out});
+        }],
+        "query" : {
+            "terms" : {
+                "_id" : this.ned.cluster_to_id[cluster_id]
+            }
+        }
+    }
+    
+    this.client.search({
+        index : this.index,
+        type  : 'baltimore',
+        body  : query
+    }).then(function(response) {
+        cb({
+            "images" : _.map(response.hits.hits, function(hit) {
+                return {
+                    'loc' : {
+                        'lat' : hit._source.location.latitude,
+                        'lon' : hit._source.location.longitude,
+                    },
+                    'img_url' : hit._source.images.low_resolution.url,
+                    'id'      : hit._source.id,
+                    'link'    : hit._source.link,
+                    'user'    : hit._source.user.username,
+                    'user_id' : hit._source.user.id
+                }
+            })
+        });
     });
 }
 
 Giver.prototype.show_ned = function(cluster_id, cb) {
     var _this = this;
-    
-    console.log(this.ned.cluster_to_id);
     
     var query = {
         "size"  : 999,
@@ -80,8 +101,8 @@ Giver.prototype.show_ned = function(cluster_id, cb) {
     }
     
     localClient.search({
-        index : 'event',
-        type  : 'sims',
+        index : 'events',
+        type  : 'baltimore',
         body  : query
     }).then(function(response) {
         _this.ned.set_detail(_.pluck(response.hits.hits, '_source'));
@@ -92,11 +113,11 @@ Giver.prototype.show_ned = function(cluster_id, cb) {
     });
 }
 
-Giver.prototype.get_ned = function(doc_type, cb) {
+Giver.prototype.load_ned = function(doc_type, cb) {
     var _this = this;
     
     var query = {
-      "size" : 99999,
+      "size" : 10000,
       "sort": [
         {
           "created_time": {
@@ -107,19 +128,18 @@ Giver.prototype.get_ned = function(doc_type, cb) {
       "query": {
         "range": {
           "created_time": {
-            "from": 1443657600000,
-            "to": 1443744000000
+            "from" : 1435530754,
+            "to"   : 1435630754
           }
         }
       }
     }
     
     localClient.search({
-        index : 'event',
-        type  : 'sims',
+        index : 'events',
+        type  : 'baltimore',
         body  : query
     }).then(function(response) {
-        console.log('ned response ::', response);
         _.map(response.hits.hits, function(x) {
             _this.ned.update({
                 'target'       : x['_source']['id'],
@@ -128,9 +148,14 @@ Giver.prototype.get_ned = function(doc_type, cb) {
                 'cands'        : x['_source']['sims']
             })
         });
+        
+        console.log('summary :: ', _this.ned.summarize());
+        
         cb({ 'events' : _this.ned.summarize() });
     });
 }
+
+// >>
 
 Giver.prototype.get_scrape = function(scrape_name, cb) {
 	var query = {
@@ -239,7 +264,6 @@ Giver.prototype.give = function() {
 				_this.socket.emit('give', data)	
 			});
 		}
-		
 		
 		if(_this.current_date.getTime() >= _this.temp_bounds.end_date.getTime()) {
 			
@@ -504,6 +528,7 @@ Giver.prototype.get_image_data_slice = function(start_date, end_date, area, cb) 
 	if(area._southWest) {
 		area = helpers.leaflet2elasticsearch(area)
 	}
+    
 	var query = {
 		"size"  : 4000,
 		"query" : {

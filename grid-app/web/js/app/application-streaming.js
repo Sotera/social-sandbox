@@ -15,6 +15,8 @@ var eventIcon = L.icon({
     iconSize:     [25, 25]
 });
 
+var rickshaw_graph = new RickshawS3C();
+
 $(document).ready(function() {
 // <draw-map>
 	var baseLayer = L.tileLayer('http://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png', {
@@ -178,7 +180,7 @@ function load_ned(scrape_name) {
                 fillOpacity : .25
             });
             rec.on('click', function(e){
-                show_ned(event.id);
+                show_ned(event);
             });
 
             // Add click handler
@@ -187,23 +189,27 @@ function load_ned(scrape_name) {
     });
 }
 
-function show_ned(d) {
-    console.log('show_ned :: ', d);
-    socket.emit('show_ned', d.id, function(response) {
+function show_ned(event) {
+    console.log('show_ned :: ', event);
     
-        
-        
+    d3.select('#images').selectAll("img").remove();
+    socket.emit('show_ned_images', event.id, function(response) {
+        _.map(response.images, function(img) {
+            sidebar_image(img);
+        });
+    });
+    
+    socket.emit('show_ned', event.id, function(response) {
         render_graph(
             format_graph(response.detail),
             {
                 "onHover" : function(node) {
-                    console.log(node);
+//                    console.log(node);
                 }
             }
         );
     });
 }
-
 
 // </scrape-management>
 
@@ -211,15 +217,17 @@ function show_ned(d) {
 // <socket>
 	var grid;
 	var line_data = []
-
+    
 	var socket = io.connect('http://localhost:3000/');
 	socket.on('give', function(data) {
         // Update date
 		$('#current-date').html(data.current_date);
         
-        
-		current_series.push({x:new Date(data.current_date).getTime() / 1000, y:data.count});
-		graph.update();
+        // Update linegraph
+		rickshaw_graph.update({
+            "x" : new Date(data.current_date).getTime() / 1000,
+            "y" : data.count
+        });
 		
 		// // Draw lines
 		d3.select('#line_svg').remove();
@@ -275,46 +283,50 @@ function show_ned(d) {
 	});
 // </socket>
 
-function loadTimeFromEvent(d) {
-	selectedImages = [];
-
-	var bounds  = current_scrape_obj.geo_bounds;
-	var time    = new Date(Number(d.event.datetime)).getTime() - (60*30);
-	var endtime = new Date(Number(time)).getTime() + (60*30);
-
-	var bounds = {
-        bottom_right : {
-            lat : d.event.geoloc.lat - .005,
-            lon : d.event.geoloc.lon + .005
-        },
-        top_left : {
-            lat : d.event.geoloc.lat + .005,
-            lon : d.event.geoloc.lon - .005
-        }
-    };
-    
-	d3.select('#images').selectAll("img").remove();
-	socket.emit('load_time', current_scrape_name, time, endtime, bounds, function(response) {
-		console.log('load_time :: ', response)
-		_.map(response.images, function(img) {
-			 draw_image(img);
-			 sidebar_image(img);
-	     });
-	});
-}
+//function loadTimeFromEvent(d) {
+//	selectedImages = [];
+//
+//	var bounds  = current_scrape_obj.geo_bounds;
+//	var time    = new Date(Number(d.event.datetime)).getTime() - (60*30);
+//	var endtime = new Date(Number(time)).getTime() + (60*30);
+//
+//	var bounds = {
+//        bottom_right : {
+//            lat : d.event.geoloc.lat - .005,
+//            lon : d.event.geoloc.lon + .005
+//        },
+//        top_left : {
+//            lat : d.event.geoloc.lat + .005,
+//            lon : d.event.geoloc.lon - .005
+//        }
+//    };
+//    
+//	d3.select('#images').selectAll("img").remove();
+//	socket.emit('load_time', current_scrape_name, time, endtime, bounds, function(response) {
+//		console.log('load_time :: ', response)
+//		_.map(response.images, function(img) {
+//			 draw_image(img);
+//			 sidebar_image(img);
+//	     });
+//	});
+//}
 
 function loadTime(time) {
 	selectedImages = [];
-	console.log(current_scrape_obj.geo_bounds);
-	var bounds = current_scrape_obj.geo_bounds;
-	var endtime = (new Date(time + (24*60*60))).getTime();
+    
+	var bounds  = current_scrape_obj.geo_bounds;
+	var endtime = (new Date(time + (24 * 60 * 60))).getTime();
+    
 	if( playback ) {
 		endtime = (new Date(time + (60*60))).getTime();
 	}
+    
 	if(drawnItems.getLayers()[0] != undefined ) {
 		bounds = drawnItems.getLayers()[0].getBounds();
 	}
+    
 	d3.select('#images').selectAll("img").remove();
+    
 	socket.emit('load_time', current_scrape_name, time, endtime, bounds, function(response) {
 		console.log('load_time :: ', response)
 		_.map(response.images, function(img) {
@@ -322,75 +334,18 @@ function loadTime(time) {
 			 sidebar_image(img);
 	     });
 	});
-}
-
-function rickshaw(current_series) {
-    // Teardown
-    d3.select('#chart').remove();
-    d3.select('#timeplot').append("div").attr("id","chart").classed("rickshaw_graph");
-    d3.select('#images').selectAll("img").remove();
-
-    var graph = new Rickshaw.Graph( {
-        element  : document.getElementById("chart"),
-        width    : $('#chart').width(),
-        height   : $('#chart').height(),
-        renderer : 'line',
-        series: [
-            {
-                color : "white",
-                data  : current_series,
-                name  : current_scrape_name
-            }
-        ]
-    } );
-
-    graph.render();
-
-    var hoverDetail = new Rickshaw.Graph.HoverDetail( {
-        graph     : graph,
-        formatter : function(series, x, y) {
-            hoverTime = x;
-            return y;
-        }
-    });
-
-    var axes = new Rickshaw.Graph.Axis.Time({ 'graph' : graph });
-    axes.render();
-
-    $('#chart').on('click', function() {
-        loadTime(hoverTime);
-    });
 }
 
 // <analyzing area>
 function analyze_area(area) {
 	socket.emit('analyze_area', area, function(data) {
 		console.log('analyze_area :: ', data)
-
-		rickshaw(_.map(data.timeseries, function(d){
+		rickshaw_graph.init(_.map(data.timeseries, function(d){
 			return {
                 "x" : new Date(d.date).getTime() / 1000,
                 "y" : d.count
             };
 		}));
-
-		/*
-		setTimeout(function(){
-			current_series.push({x:new Date().getTime() / 1000, y:60});
-			graph.update();
-
-		}, 5000);
-		*/
-		//draw_line(line_data);
-		
-		/*
-		if(!grid) {
-			grid = init_grid(data.grid)
-			reset_grid(grid)
-		} else {
-			draw_grid(grid, data.grid)
-		}
-		*/
 	});
 }
 // <analyzing area>
@@ -421,8 +376,7 @@ function analyze_area(area) {
 			var svg     = d3.select(map.getPanes().overlayPane).append("svg");
 			var g       = svg.append("g").attr("class", "leaflet-zoom-hide");
 			var feature = g.selectAll("path").data(grid_data.features).enter().append("path");
-			
-			console.log('init grid')
+            
 			return {
 				svg        : svg,
 				g          : g,
@@ -632,7 +586,7 @@ function analyze_area(area) {
         		})
         	}
         });
-                
+        
         // Calculate bar width
         var bar_width = 3;
                 
@@ -653,15 +607,15 @@ function analyze_area(area) {
 						.attr('height', height)
 						.attr('width', width);
         
-		  svg.append("g")
-		    .append("text")
-		    .attr("x", 2)
-		    .attr("y", 0)
-		    .attr("dy", ".71em")
-		    .attr("text-anchor", "start")
-		    .attr("font-size", "1.1em")
-		    .attr('fill', 'white')
-		    .text(function(d) { return d.key});
+        svg.append("g")
+            .append("text")
+            .attr("x", 2)
+            .attr("y", 0)
+            .attr("dy", ".71em")
+            .attr("text-anchor", "start")
+            .attr("font-size", "1.1em")
+            .attr('fill', 'white')
+            .text(function(d) { return d.key});
 		    
         svg.selectAll(".bar")
             .data(function(d) {console.log('d :: ', d); return d.timeseries})
@@ -742,7 +696,7 @@ function analyze_area(area) {
 
 // <events>
 	$('#start-stream').on('click', function() {
-		rickshaw([]);
+		rickshaw_graph.reset();
 		playback = true;
 		socket.emit('start_giver', function() {
 			console.log('start_giver :: ');
@@ -760,7 +714,7 @@ function analyze_area(area) {
 
 	$('#go-live').on('click', function() {
 		playback = false;
-		rickshaw([]);
+		rickshaw_graph.reset();
 		socket.emit('realtime', function() {
 			console.log('realtime :: ');
 			// ... nothing else yet ...

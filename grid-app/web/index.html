@@ -12,12 +12,12 @@
   <link type="text/css" rel="stylesheet" href="bower_components/rickshaw/examples/css/lines.css">
 
   <script src="bower_components/rickshaw/vendor/d3.v3.js"></script>
+  <script src="js/libs/jquery.min.js"></script>
+  <script src="js/libs/jquery-ui.js"></script>
 
   <script src="bower_components/rickshaw/rickshaw.js"></script>
   <script src="bower_components/moment/moment.js"></script>
   
-  <script src="js/libs/jquery.min.js"></script>
-  <script src="js/libs/jquery-ui.js"></script>
   
   <script src="js/libs/leaflet.js"></script>
   <script src="js/libs/leaflet.draw.js"></script>
@@ -91,13 +91,13 @@
 
         <div class="bottom-bar row-fluid">
             <div id="images" class="col-xs-4" style="height:100%; background: rgba(255, 255, 255, .05);"></div>
-            <div id="timeplot" class="col-xs-4" style="height:100%;">
-                <div id="chart"></div>
-                <div id="slider"></div>
-            </div>
+            
+            <div id="timeplot" class="col-xs-4" style="height:100%;"></div>
+            
             <div id="graph-container" class="col-xs-4" style="height:100%; background: rgba(255, 255, 255, .05);">
                 <canvas id="graph" style='position:absolute; height:100%; width:90%;'></canvas>
             </div>
+            
         </div>
         
     </div>
@@ -187,6 +187,7 @@
 </div>
   
   
+  <script src="js/app/rickshawS3C.js"></script>
   <script src="js/app/application-streaming.js"></script>
   <script src="js/app/graph.js"></script>
   

@@ -249,16 +249,20 @@ function init_network(data, params) {
         return node;                
     }.bind(this));
     
-    network.links = _.map(network.links, function(link) {
-        return _.extend(link, {
-            from   : lookup[link.source],
-            to     : lookup[link.target],
-            source : network.nodes[lookup[link.source]],
-            target : network.nodes[lookup[link.target]],
-            color  : 'rgba(' + link.sim * 255 + ', ' + 0 + ', ' + 0 + ', ' + 2 * link.sim + ')',
-            r      : .1
-        })
-    });
+    network.links = _.chain(network.links).map(function(link) {
+        if(network.nodes[lookup[link.target]]) {
+            return _.extend(link, {
+                from   : lookup[link.source],
+                to     : lookup[link.target],
+                source : network.nodes[lookup[link.source]],
+                target : network.nodes[lookup[link.target]],
+                color  : 'rgba(' + link.sim * 255 + ', ' + 0 + ', ' + 0 + ', ' + 2 * link.sim + ')',
+                r      : .1
+            })
+        } else {
+            return undefined;
+        }
+    }).filter(function(x) {return x != undefined}).value();
                 
     // This could be sped up using crossfilter
     network.set_filter = function(threshold) {

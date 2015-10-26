@@ -1,10 +1,10 @@
 
 module.exports = function(app, server, client, config) {
-  var io       = require('socket.io').listen(server, { log : false });
-  var _        = require('underscore');
-  var request  = require('request');
-  var kafka    = require('kafka-node');
-  var es       = require('elasticsearch');
+  var io       = require('socket.io').listen(server, { log : false }),
+      _        = require('underscore'),
+      request  = require('request'),
+      kafka    = require('kafka-node'),
+      es       = require('elasticsearch');
 
   var config   = require('./config'),
       Giver    = require('./giver'),
@@ -24,15 +24,7 @@ module.exports = function(app, server, client, config) {
   const WHITELIST = ['fred','cuba','japan','richmond','suruc','caracas','charleston','boston', 'ukraine', 'southkorea', 'cleveland', 'baltimore', 'isil', 'ny', 'dc', 'waitwhat', 'national_mall', 'la'];
 
   io.sockets.on('connection', function(socket) {
-    
-    // ****
-    // var nedClient = new es.Client({hosts : ['http://localhost:9205/']});
-    // var nedGiver  = new NedGiver(nedClient, socket, 'event')
-    // nedGiver.set_temp_bounds({"start_date" : new Date('2015-10-01'), "end_date" : new Date('2015-10-30')});
-    // socket.on('start_ned', function(cb) {nedGiver.start(); cb();})
-    // socket.on('stop_ned',  function(cb) {nedGiver.stop(); cb();})
-    // ****
-    
+        
     // Giver
     var giver = new Giver(client, socket, config.index);
     // giver.set_temp_bounds({"start_date" : new Date('2015-04-01'), "end_date" : new Date('2015-04-30')});
@@ -42,7 +34,7 @@ module.exports = function(app, server, client, config) {
     socket.on('realtime',    function(cb) { giver.go_live(); cb(); });
 
     socket.on('load_time', function(current_scrape_name, starttime, endtime, geo_bounds, callback) {
-        giver.get_image_data_slice(new Date(starttime*1000), new Date((new Date(endtime*1000))), geo_bounds, function(response) {
+        giver.get_image_data_slice(new Date(starttime * 1000), new Date(endtime * 1000), geo_bounds, function(response) {
           callback(response);
         });
     });
@@ -107,9 +99,11 @@ module.exports = function(app, server, client, config) {
         });
     });
     
+    // <<
+    
     socket.on('load_ned', function(scrape_name, callback) {
         console.log('load_ned :: ', scrape_name);
-        giver.get_ned(scrape_name, function(ned) {
+        giver.load_ned(scrape_name, function(ned) {
             callback(ned);
         });
     });
@@ -120,6 +114,15 @@ module.exports = function(app, server, client, config) {
             callback(ned_detail);
         });
     });
+
+    socket.on('show_ned_images', function(cluster, callback) {
+        console.log('show_ned_images :: ', cluster);
+        giver.show_ned_images(cluster, function(ned_detail) {
+            callback(ned_detail);
+        });
+    });
+
+    // >>
 
     socket.on('analyze_area', function(area, callback) {
       console.log('area :: ', area);
@@ -177,5 +180,4 @@ module.exports = function(app, server, client, config) {
     //     }
     // });
   });
-
 }

@@ -145,6 +145,8 @@
     border-radius : 50%;
   }
 
+/**/
 
-
-
+.x_tick {
+    color : red;
+}
