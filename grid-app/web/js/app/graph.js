@@ -27,8 +27,11 @@ function format_graph(data) {
     }
 }
 
+var grapher;
 function render_graph(data, callbacks) {
       // Generate some data
+    grapher.off('mousemove');
+    grapher = undefined;
     $('#graph').css('display', 'inline')
     var div = $('#graph');
     
@@ -41,7 +44,7 @@ function render_graph(data, callbacks) {
         network.set_filter(state.threshold);
     
     // Create a grapher instance (width, height, options)
-    var grapher = new Grapher({
+    grapher = new Grapher({
         canvas : document.getElementById('graph'),
         width  : width,
         height : height,
@@ -66,7 +69,7 @@ function render_graph(data, callbacks) {
     function getNodeIdAt(point) {
         var node = -1, x = point.x, y = point.y;
 
-        network.nodes.every(function (n, i) {
+        network.filtered.nodes.every(function (n, i) {
             var inX = x <= n.x + n.r && x >= n.x - n.r,
                 inY = y <= n.y + n.r && y >= n.y - n.r,
                 found = inX && inY;
@@ -113,7 +116,7 @@ function render_graph(data, callbacks) {
     grapher.on('mousemove', function(e) {
         if (startPoint) {
             var translate = grapher.translate(),
-                    offset = getOffset(e);
+                   offset = getOffset(e);
 
             translate[0] += (offset.x - startPoint.x);
             translate[1] += (offset.y - startPoint.y);
@@ -130,7 +133,6 @@ function render_graph(data, callbacks) {
                 
                 if(hoveredNode) {
                     if(hoveredNode.id != thisNode.id) {
-                        console.log('new node');
                         hoveredNode.unhover();
                     }
                 }

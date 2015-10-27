@@ -224,6 +224,8 @@ function show_ned(event) {
             format_graph(response.detail),
             {
                 "onHover" : function(node) {
+                    console.log('node:: ', node.id);
+                    
                     socket.emit('url_from_id', node.id, function(d) {
                         m = draw_image(d);
                     });
