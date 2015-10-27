@@ -6,7 +6,7 @@ var _        = require('underscore')._,
       moment = require('moment'),
           es = require('elasticsearch');
           
-var localClient = new es.Client({hosts : ['http://localhost:9205/']});
+// var localClient = new es.Client({hosts : ['http://localhost:9205/']});
 
 var NewEventDetector = require('./events');
 
@@ -65,9 +65,6 @@ Giver.prototype.show_ned_images = function(cluster_id, cb) {
         }
     }
     
-    console.log(this.index);
-    console.log(this.scrape_name);
-    
     this.client.search({
         index : this.index,
         type  : this.scrape_name,
@@ -103,7 +100,7 @@ Giver.prototype.show_ned = function(cluster_id, cb) {
         }
     }
     
-    localClient.search({
+    this.client.search({
         index : 'events',
         type  : this.scrape_name,
         body  : query
@@ -119,6 +116,8 @@ Giver.prototype.show_ned = function(cluster_id, cb) {
 Giver.prototype.load_ned = function(start_date, end_date, cb) {
     var _this = this;
     
+    this.ned.reset();
+    
     var query = {
       "size" : 50000,
       "sort": [
@@ -129,20 +128,21 @@ Giver.prototype.load_ned = function(start_date, end_date, cb) {
       "query": {
         "range": {
           "created_time": {
-            // "from" : start_date,
-            // "to"   : end_date
-            "from" : + new Date('2015-04-25') / 1000,
-            "to"   : + new Date('2015-04-26') / 1000
+            "from" : start_date,
+            "to"   : end_date
+            // "from" : + new Date('2015-04-25') / 1000,
+            // "to"   : + new Date('2015-04-26') / 1000
           }
         }
       }
     }
     
-    localClient.search({
+    this.client.search({
         index : 'events',
-        // type  : this.scrape_name,
+        type  : this.scrape_name,
         body  : query
     }).then(function(response) {
+        console.log('load_ned :: got response');
         _.map(response.hits.hits, function(x) {
             _this.ned.update({
                 'target'       : x['_source']['id'],
@@ -151,8 +151,6 @@ Giver.prototype.load_ned = function(start_date, end_date, cb) {
                 'cands'        : x['_source']['sims']
             })
         });
-        
-        console.log('summary :: ', _this.ned.summarize());
         
         cb({ 'events' : _this.ned.summarize() });
     });
@@ -680,8 +678,9 @@ Giver.prototype.analyze_grid_data = function(area, cb) {
 
 Giver.prototype.analyze_ts_data = function(params, cb) {
 	
-    var query;
+    var query, interval;
     if(params.area) {
+        interval = 'day'
         query = {
             // "size" : 0,
             "query": {
@@ -703,6 +702,7 @@ Giver.prototype.analyze_ts_data = function(params, cb) {
             }
         }        
     } else {
+        interval = 'hour'
         query = {
             "query" : {
                 "terms" : {
@@ -716,7 +716,7 @@ Giver.prototype.analyze_ts_data = function(params, cb) {
         "timeseries" : {
             "date_histogram" : {
                 "field"    : "created_time",
-                "interval" : "hour" // HARDCODING TO DAY INTERVAL FOR NOW
+                "interval" : interval
             }
         }
     }

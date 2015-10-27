@@ -13,6 +13,8 @@ var hover_time = undefined;
 
 var num_scrapes = 0;
 
+var event_recs = [];
+
 var eventIcon = L.icon({
     iconUrl: 'EventIcon.jpg',
     iconSize:     [25, 25]
@@ -23,6 +25,7 @@ var rickshaw_graph = new RickshawS3C({
         min_date = _min_date;
         max_date = _max_date;
         $('#events-btn').css('display', 'inline');
+        $('#events-btn').off('click').on('click', show_handler());
     }
 });
 
@@ -118,28 +121,28 @@ function load_scrape(scrape_name) {
 }
 
 function set_scrape(scrape_name) {
+    d3.select("#eventresults").remove();
+    d3.select('#images').selectAll("img").remove(); 
+    d3.select("#info").html("");
+    
 	socket.emit('set_scrape', scrape_name, function(response) {
+        console.log('set_scrape :: ', response);
 		
-		console.log('set_scrape :: ', response);
-		current_scrape_name = scrape_name;
-		d3.select("#info").html("");
-		//f$('#analyze-btn').css('display', 'inline');
+        current_scrape_name = scrape_name;
+		
 		$('#start-stream').css('display', 'inline');
 		$('#stop-stream').css('display', 'inline');
 		$('#go-live').css('display', 'inline');
-		
-		var geo_bounds = elasticsearch2leaflet(response.geo_bounds);
 		
 		$('#scrape-name').html(response.scrape_name);
 	    $('#scrape-start-date').html(response.temp_bounds.start_date);
 	    $('#scrape-end-date').html(response.temp_bounds.end_date);
 	    
+        var geo_bounds = elasticsearch2leaflet(response.geo_bounds);
 	    map.fitBounds(geo_bounds);
+        
 	    current_scrape_obj = response;
-	    analyze_area({
-            "area" : geo_bounds
-        });
-	    d3.select('#images').selectAll("img").remove(); 
+	    analyze_area({ "area" : geo_bounds });
 	});
 }
 
@@ -193,6 +196,7 @@ function load_ned(start_date, end_date) {
             rec.on('click', function(e){ show_ned(event); });
 
             // Add click handler
+            event_recs.push(rec);
             rec.addTo(map)            
         });
     });
@@ -510,7 +514,7 @@ function analyze_area(params) {
 		imageHash[d.img_url] = d;
 		
 		d3.select("img[src=\"" + d.img_url + "\"]").transition()
-			.duration(6000)
+			.duration(2000)
 			.style("opacity", 0);
 			
 		d3.selectAll(".leaflet-marker-icon")
@@ -757,11 +761,28 @@ function analyze_area(params) {
 		});	
 	});
 
-    $('#events-btn').on('click', function() {
-        load_ned(min_date, max_date); 
-    });
-
-    load_ned(undefined, undefined); 
+    show_handler = function() {
+        return function() {
+            load_ned(min_date, max_date);
+            $('#events-btn').text('Hide Events');
+            $('#events-btn').off('click').on('click', hide_handler());
+        }
+    }
+    hide_handler = function() {
+        return function() {
+            _.map(event_recs, function(rec) {
+                map.removeLayer(rec);
+            });
+            event_recs = [];
+            
+            $("#graph").css('display', 'none');
+            set_scrape(current_scrape_name);
+            
+            $('#events-btn').text('Show Events')
+            $('#events-btn').off('click').on('click', show_handler());
+        }
+    }
+    $('#events-btn').on('click', show_handler())
     
 	$('#analyze-btn').on('click', function() {
 		analyze_area({

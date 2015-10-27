@@ -8,6 +8,13 @@ function Events() {
     this.cluster_to_id     = {};
 }
 
+Events.prototype.reset = function() {
+    this.n                 = 0;
+    this.cluster_summaries = {};
+    this.id_to_cluster     = {};
+    this.cluster_to_id     = {};    
+}
+
 Events.prototype.update_id_to_cluster = function(cluster_id) {
     _.map(this.cluster_to_id[cluster_id], function(id) {
         this.id_to_cluster[id] = this.n;

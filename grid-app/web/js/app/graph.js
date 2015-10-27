@@ -29,13 +29,14 @@ function format_graph(data) {
 
 function render_graph(data, callbacks) {
       // Generate some data
+    $('#graph').css('display', 'inline')
     var div = $('#graph');
-
+    
     var width  = div.width(),
         height = div.height(),
         i;
 
-    var network = init_network(data, {"width" : width, "height" : height});
+    var network = init_network(data, {"width" : width, "height" : height, "callbacks" : callbacks});
 //        network.fix_dims(state.xvar, state.yvar);
         network.set_filter(state.threshold);
     
@@ -124,14 +125,18 @@ function render_graph(data, callbacks) {
             var point   = grapher.getDataPosition(eOffset);
             var nodeId  = getNodeIdAt(point);
             
+            console.log(nodeId);
+            console.log(network.nodes[nodeId]);
+            
             if(nodeId > -1) {
+                var thisNode = network.nodes[nodeId];
+                
                 if(hoveredNode) { hoveredNode.unhover() }
                 
-                hoveredNode = network.nodes[nodeId];
-                network.nodes[nodeId].hover();
+                hoveredNode = thisNode;
+                thisNode.hover();
                 
                 grapher.update();
-                callbacks.onHover(network.nodes[nodeId]);
             }
         }
     });
@@ -218,16 +223,15 @@ function init_network(data, params) {
     rainbow.setNumberRange(0, 1);
     network.nodes = _.map(network.nodes, function(node, i) {
         
+        lookup[node.id] = _.keys(lookup).length;
+        
         var pos = {
 //            lat  : 1 - (node['lat'] - meta['lat'].min) / (meta['lat'].max - meta['lat'].min),
 //            lon  : (node['lon'] - meta['lon'].min)     / (meta['lon'].max - meta['lon'].min),
             time : (node['time'] - meta['time'].min)   / (meta['time'].max - meta['time'].min),
         }
 
-        var col  = make_color(1 - pos['time'], this.use_rainbow);
-        
-        lookup[node.id] = _.keys(lookup).length;
-        
+        var col = make_color(1 - pos['time'], this.use_rainbow);
         var node = _.extend(node, {
             name  : lookup[node.id],
 //            lat   : pos['lat'],
@@ -240,10 +244,11 @@ function init_network(data, params) {
         node.hover = function() {
             this.color = HIGHLIGHT_COLOR;
             d3.select('#thumbnail').attr('src', this.path);
+            params.callbacks.onHover(this);
         }
         
         node.unhover = function() {
-            this.color = col;
+            this.color = make_color(this.scaled_time, this.use_rainbow);;
         }
         
         return node;                
