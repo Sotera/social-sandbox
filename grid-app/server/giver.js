@@ -601,10 +601,21 @@ Giver.prototype.analyze_ts_data = function(area, cb) {
 					"field"    : "created_time",
 					// "interval" : this.interval
 					"interval" : "day" // HARDCODING TO DAY INTERVAL FOR NOW
-				}
-			}
+				},
+			
+				"aggs": {
+	            	"hashtags": {
+	               		"terms": {
+	                  		"field": "tags",
+	                  		"size":5
+	               		}
+	          	 	 }
+	       	 	}
+	       	 }
 		}
-	}
+	};
+
+	console.log(query);
 		
 	this.client.search({
 		index      : this.index,
@@ -617,7 +628,8 @@ Giver.prototype.analyze_ts_data = function(area, cb) {
 							.map(function(x) {
 								return {
 									'count' : x['doc_count'],
-									'date'  : x['key_as_string']
+									'date'  : x['key_as_string'],
+									'hashtags': x['hashtags']['buckets']
 								}
 							});
 		

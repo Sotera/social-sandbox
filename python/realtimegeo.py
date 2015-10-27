@@ -140,7 +140,7 @@ while realtime:
         + 'min_timestamp=' + str(int(mktime(tmp_start_date.timetuple()))) + '&' \
         + 'max_timestamp=' + str(int(mktime(tmp_end_date.timetuple()))) + '&' \
         + 'lat='+ str(tmp_lat) + '&' \
-        + 'lng=' + str(tmp_lon) + '&client_id=' + client_id \
+        + 'lng=' + str(tmp_lon) + '&access_token=' + client_id \
         + '&count=500')
         sleep(1) # this sleep call ensures we don't hit instagram's api limit of 5000 an hour.
       except urllib2.URLError: # weird error? just sleep for a second, print the error, and move on to the next time slice.  no point in trying again
@@ -152,7 +152,7 @@ while realtime:
         + 'min_timestamp=' + str(int(mktime(tmp_start_date.timetuple()))) + '&' \
         + 'max_timestamp=' + str(int(mktime(tmp_end_date.timetuple()))) + '&' \
         + 'lat='+ str(tmp_lat) + '&' \
-        + 'lng=' + str(tmp_lon) + '&client_id=' + client_id \
+        + 'lng=' + str(tmp_lon) + '&access_token=' + client_id \
         + '&count=500 ***'
         continue
       # if we get here we have some results
@@ -162,7 +162,7 @@ while realtime:
 
       file_name = str(tmp_lat) + "_" + str(tmp_lon) + "_" + str(int(mktime(tmp_start_date.timetuple()))) + "_" + str(int(mktime(tmp_end_date.timetuple()))) + ".bulk"
       num_i = len(j['data']) # count the number of images.
-      print str(num_i) + ' pictures in: ' + str(tmp_start_date) + ' - ' + str(tmp_end_date)
+      print str(datetime.now()) + " -- " + str(num_i) + ' pictures in: ' + str(tmp_start_date) + ' - ' + str(tmp_end_date)
       if num_i > max_images: # if the number of images is more than the max, we need to cut the time down.
         if time_inc_seconds > 60: # as long as we haven't hit the min, we'll decrease
           if time_inc_seconds >= 1800: # if we're anything >= 30 minutes, just cut the time in half
@@ -192,8 +192,10 @@ while realtime:
       eslines = []
       bykey = {}
       for img in j['data']:
-        if not (img['location']['latitude'] >= minlat - .005 and img['location']['longitude'] >= minlon - .005 and img['location']['latitude'] <= maxlat + .005 and img['location']['longitude'] <= maxlon + .005):
+        if not img.get('location') or not img['location'].get('latitude'):
           continue
+          if not (img['location']['latitude'] >= minlat - .005 and img['location']['longitude'] >= minlon - .005 and img['location']['latitude'] <= maxlat + .005 and img['location']['longitude'] <= maxlon + .005):
+            continue
         q.put({"id":img['id'], "url":img['images']['standard_resolution']['url']})
         indexline = { "index" : { "_index" : "instagram_remap", "_type" : direct, "_id" : img['id'] } }
         dataline = img

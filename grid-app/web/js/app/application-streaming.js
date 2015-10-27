@@ -125,6 +125,36 @@ function load_scrape(scrape_name) {
 	});
 }
 
+function load_hashtags(data) {
+	d3.select("#hashtagresults").remove();
+		
+	//_.map(response.events, placeEvent);
+	var t = d3.select("#hashtags").append("table");
+	t.attr("class", "table bordered").attr("id","hashtagresults");
+	var tr = t.append("thead").append("tr");
+	tr.append("th").text("DateTime");
+	tr.append("th").text("Tags");
+
+	var tbody = t.append("tbody");
+
+	var tr = tbody.selectAll("tr").data(_.sortBy(data,function(d){
+		return new Date(d.date).getTime();
+	}).reverse()
+	).enter().append("tr");
+
+	tr.append("td").text(function(d){
+		return moment(new Date(d.date)).format('MMMM Do YYYY');
+	}).on("click",function(d){
+		console.log(d);
+		//loadTimeFromEvent(d);
+		
+	});
+	tr.append("td").text(function(d){
+		return d.hashtags[0].key;
+	});	
+	
+}
+
 function load_events(scrape_name) {
 	d3.select("#eventresults").remove();
 	socket.emit('load_events', scrape_name, function(response) {
@@ -371,9 +401,11 @@ function analyze_area(area) {
 		var rd = _.map(line_data, function(d){
 			return {x:new Date(d.date).getTime() / 1000, y:d.count};
 		});
-		console.log(rd);
+		//console.log(rd);
 		current_series = rd;
 		rickshaw();
+
+		load_hashtags(data.timeseries);
 
 		/*
 		setTimeout(function(){
