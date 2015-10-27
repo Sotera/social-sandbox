@@ -30,7 +30,10 @@ function format_graph(data) {
 var grapher;
 function render_graph(data, callbacks) {
       // Generate some data
-    grapher.off('mousemove');
+    if(grapher) {
+        grapher.off('mousemove');    
+    }
+    
     grapher = undefined;
     $('#graph').css('display', 'inline')
     var div = $('#graph');
@@ -254,7 +257,7 @@ function init_network(data, params) {
         }
         
         node.unhover = function() {
-            this.color   = make_color(this.scaled_time, network.use_rainbow);;
+            this.color   = make_color(1 - this.scaled_time, network.use_rainbow);;
             this.hovered = false;
         }
         

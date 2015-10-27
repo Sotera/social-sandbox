@@ -6,7 +6,7 @@ var _        = require('underscore')._,
       moment = require('moment'),
           es = require('elasticsearch');
           
-// var localClient = new es.Client({hosts : ['http://localhost:9205/']});
+var localClient = new es.Client({hosts : ['http://localhost:9205/']});
 
 var NewEventDetector = require('./events');
 
@@ -17,6 +17,7 @@ function Giver(client, socket, index) {
 	this.scrape_name = undefined;
 	
 	this.client = client;
+    this.event_client = localClient;
 	this.socket = socket;
 
 	this.temp_bounds  = undefined;
@@ -100,9 +101,10 @@ Giver.prototype.show_ned = function(cluster_id, cb) {
         }
     }
     
-    this.client.search({
+    this.event_client.search({
         index : 'events',
-        type  : this.scrape_name,
+        // type  : this.scrape_name,
+        type : 'hajj_wide',
         body  : query
     }).then(function(response) {
         _this.ned.set_detail(_.pluck(response.hits.hits, '_source'));
@@ -138,9 +140,10 @@ Giver.prototype.load_ned = function(start_date, end_date, cb) {
       }
     }
     
-    this.client.search({
+    this.event_client.search({
         index : 'events',
-        type  : this.scrape_name,
+        // type  : this.scrape_name,
+        type : 'hajj_wide',
         body  : query
     }).then(function(response) {
         console.log('load_ned :: got response');
@@ -161,11 +164,7 @@ Giver.prototype.url_from_id = function(id, cb) {
     
     var query = {
         "_source" : ["images.low_resolution.url", "location"],
-        "query" : {
-            "match" : {
-                "id" : id
-            }
-        }
+        "query"   : {  "match" : { "id" : id } }
     }
     
     this.client.search({

@@ -21,8 +21,8 @@ module.exports = function(app, server, client, config) {
       { topic: kafkaConf['RAW_TOPIC'] }
     ], { autoCommit: true, fetchMaxBytes: 1024 * 100000} );
 
-  const WHITELIST = ['fred','cuba','japan','richmond','suruc','caracas','charleston','boston', 'ukraine', 'southkorea', 'cleveland', 'baltimore', 'isil', 'ny', 'dc', 'waitwhat', 'national_mall', 'la'];
-
+  const WHITELIST = ['hajj', 'fred','cuba','japan','richmond','suruc','caracas','charleston','boston', 'ukraine', 'southkorea', 'cleveland', 'baltimore', 'isil', 'ny', 'dc', 'waitwhat', 'national_mall', 'la'];
+  
   io.sockets.on('connection', function(socket) {
         
     // Giver
@@ -60,10 +60,11 @@ module.exports = function(app, server, client, config) {
       console.log('get_existing :: ');
       
       client.indices.getMapping({
-        index : config['index']
+        index : config['index'],
+        type  : WHITELIST
       }).then(function(response) {
         callback({
-          'types' : _(response.instagram_remap.mappings)
+          'types' : _(response['instagram_remap'].mappings)
             .keys()
             .filter(function(d) {
               return _.contains(WHITELIST, d)
