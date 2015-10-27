@@ -1,4 +1,4 @@
-var _      = require('underscore')._;
+var _ = require('underscore')._;
 
 function Events() {
     this.thresh            = 0.4;

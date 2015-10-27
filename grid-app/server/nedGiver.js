@@ -1,3 +1,4 @@
+/*
 var _      = require('underscore')._,
     async  = require('async'),
     moment = require('moment');
@@ -176,3 +177,5 @@ nedGiver.prototype.get_cc = function(start_date, end_date, cb) {
 // ---- Helper functions -----
 
 module.exports = nedGiver
+
+*/

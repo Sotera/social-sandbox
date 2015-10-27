@@ -125,13 +125,15 @@ function render_graph(data, callbacks) {
             var point   = grapher.getDataPosition(eOffset);
             var nodeId  = getNodeIdAt(point);
             
-            console.log(nodeId);
-            console.log(network.nodes[nodeId]);
-            
             if(nodeId > -1) {
                 var thisNode = network.nodes[nodeId];
                 
-                if(hoveredNode) { hoveredNode.unhover() }
+                if(hoveredNode) {
+                    if(hoveredNode.id != thisNode.id) {
+                        console.log('new node');
+                        hoveredNode.unhover();
+                    }
+                }
                 
                 hoveredNode = thisNode;
                 thisNode.hover();
@@ -236,19 +238,22 @@ function init_network(data, params) {
             name  : lookup[node.id],
 //            lat   : pos['lat'],
 //            lon   : pos['lon'],
-            scaled_time  : pos['time'],
-            r     : 2,
-            color : col
+            scaled_time : pos['time'],
+            r           : 2,
+            color       : col,
+            hovered     : false
         });
         
         node.hover = function() {
             this.color = HIGHLIGHT_COLOR;
             d3.select('#thumbnail').attr('src', this.path);
-            params.callbacks.onHover(this);
+            if(!this.hovered) { params.callbacks.onHover(this); }
+            this.hovered = true;
         }
         
         node.unhover = function() {
-            this.color = make_color(this.scaled_time, this.use_rainbow);;
+            this.color   = make_color(this.scaled_time, network.use_rainbow);;
+            this.hovered = false;
         }
         
         return node;                

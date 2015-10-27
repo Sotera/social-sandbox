@@ -119,8 +119,9 @@ Giver.prototype.load_ned = function(start_date, end_date, cb) {
     this.ned.reset();
     
     var query = {
-      "size" : 50000,
-      "sort": [
+      "size"    : 50000,
+      "_source" : ['id', 'created_time', 'location', 'sims'],
+      "sort"    : [
         {
           "created_time": { "order": "asc" }
         }
