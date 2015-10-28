@@ -29,6 +29,7 @@ function format_graph(data) {
 
 var grapher;
 function render_graph(data, callbacks) {
+    console.log(data);
       // Generate some data
     if(grapher) {
         grapher.off('mousemove');    

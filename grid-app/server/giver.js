@@ -6,7 +6,7 @@ var _        = require('underscore')._,
       moment = require('moment'),
           es = require('elasticsearch');
           
-var localClient = new es.Client({hosts : ['http://localhost:9205/']});
+var localClient = new es.Client({hosts : ['http://10.1.94.103:9200/']});
 
 var NewEventDetector = require('./events');
 
