@@ -28,6 +28,7 @@ function format_graph(data) {
 }
 
 var grapher;
+var force;
 function render_graph(data, callbacks) {
       // Generate some data
     if(grapher) {
@@ -64,10 +65,11 @@ function render_graph(data, callbacks) {
             .linkDistance(5)
             .charge(-5)
             .friction(.5)
+            .alpha(10)
             .start()
     }
             
-    var force = make_force();
+    force = make_force();
 
     function getNodeIdAt(point) {
         var node = -1, x = point.x, y = point.y;
@@ -189,7 +191,7 @@ function render_graph(data, callbacks) {
             grapher.update();
         } else if(d3.event.keyCode == 75) { // k
             // Toggle holding y
-            force.toggle_fixX();
+            // force.toggle_fixX();
         } else if(d3.event.keyCode == 76) {
             // Toggle holding x
         } else {

@@ -165,7 +165,23 @@ function load_ned(start_date, end_date) {
         .append("tr")
         .on('click', function(d) {
             show_ned(d);
-        });
+        })
+        .on('mouseover', function(d) {
+            d3.select(this).style('color', 'red');
+            _.map(event_recs, function(rec) {
+                if(rec.options.id == d.id) {
+                    rec.setStyle({"color" : "red"});
+                } else {
+                    rec.setStyle({"color" : "yellow"});
+                }
+            });
+        })
+        .on('mouseout', function(d) {
+            d3.select(this).style('color', 'white');
+            _.map(event_recs, function(rec) {
+                rec.setStyle({"color" : "yellow"});
+            });
+        })
 
         tr.append("td").append('small').text(function(d){
             var dates = [
@@ -189,12 +205,13 @@ function load_ned(start_date, end_date) {
             geo_bounds     = L.latLngBounds(southWest, northEast);
             
             var rec = L.rectangle(geo_bounds, {
+                id          : event.id,
                 color       : "yellow",
                 weight      : 2,
                 fillOpacity : .25
             });
             rec.on('click', function(e){ show_ned(event); });
-
+            
             // Add click handler
             event_recs.push(rec);
             rec.addTo(map)            

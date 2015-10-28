@@ -1,4 +1,3 @@
-
 var _        = require('underscore')._,
     ngeohash = require('ngeohash'),
        async = require('async'),
@@ -6,7 +5,8 @@ var _        = require('underscore')._,
       moment = require('moment'),
           es = require('elasticsearch');
           
-var localClient = new es.Client({hosts : ['http://localhost:9205/']});
+var localClient;
+// var localClient = new es.Client({hosts : ['http://localhost:9205/']});
 
 var NewEventDetector = require('./events');
 
@@ -16,9 +16,10 @@ function Giver(client, socket, index) {
 	this.index       = index;
 	this.scrape_name = undefined;
 	
-	this.client = client;
-    this.event_client = localClient;
-	this.socket = socket;
+	this.client       = client;
+    this.event_client = localClient || client;
+	
+    this.socket = socket;
 
 	this.temp_bounds  = undefined;
 
@@ -103,8 +104,7 @@ Giver.prototype.show_ned = function(cluster_id, cb) {
     
     this.event_client.search({
         index : 'events',
-        // type  : this.scrape_name,
-        type : 'hajj_wide',
+        type  : this.scrape_name,
         body  : query
     }).then(function(response) {
         _this.ned.set_detail(_.pluck(response.hits.hits, '_source'));
@@ -131,10 +131,10 @@ Giver.prototype.load_ned = function(start_date, end_date, cb) {
       "query": {
         "range": {
           "created_time": {
-            "from" : start_date,
-            "to"   : end_date
-            // "from" : + new Date('2015-04-25') / 1000,
-            // "to"   : + new Date('2015-04-26') / 1000
+            // "from" : start_date,
+            // "to"   : end_date
+            "from" : + new Date('2015-04-30') / 1000,
+            "to"   : + new Date('2015-05-01') / 1000
           }
         }
       }
@@ -142,8 +142,7 @@ Giver.prototype.load_ned = function(start_date, end_date, cb) {
     
     this.event_client.search({
         index : 'events',
-        // type  : this.scrape_name,
-        type : 'hajj_wide',
+        type  : this.scrape_name,
         body  : query
     }).then(function(response) {
         console.log('load_ned :: got response');
