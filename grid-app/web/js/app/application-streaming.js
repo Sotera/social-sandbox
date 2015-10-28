@@ -150,9 +150,11 @@ function load_ned(start_date, end_date) {
     d3.select("#eventresults").remove();
     socket.emit('load_ned', start_date, end_date, function(response) {
         
+        console.log('load_ned response ::', response);
+        
         // Make table
         var t = d3.select("#events").append("table");
-        t.attr("class", "table bordered").attr("id","eventresults");
+        t.attr("class", "table bordered").attr("id", "eventresults");
         
         var th = t.append("thead").append("tr");
         th.append("th").text("Date");
@@ -163,6 +165,7 @@ function load_ned(start_date, end_date) {
             _.sortBy(response.events, function(d) { return - d['count']; })
         ).enter()
         .append("tr")
+        .attr('class', 'bordered-table-row')
         .on('click', function(d) {
             show_ned(d);
         })
@@ -195,6 +198,8 @@ function load_ned(start_date, end_date) {
         tr.append("td").text(function(d){
             return d['count'];
         });
+        
+        tr.append('div').attr('position', 'absolute').attr('top', 0).attr('bottom', 0).attr('left', function(d) {return 10});
         
         // Add to map, with link to network graph
         _.map(response.events, function(event) {
@@ -486,7 +491,7 @@ function analyze_area(params) {
 	var selectedImages = {};
 	var LeafIcon = L.Icon.extend({
 	    options: {
-	        iconSize:[50, 50],
+	        iconSize:[100, 100],
 	    }
 	});
 	
@@ -544,8 +549,8 @@ function analyze_area(params) {
 				})
 			.on("mouseout",function(d){
 				d3.select(this)
-					.style("width","50px")
-					.style("height","50px")
+					.style("width","100px")
+					.style("height","100px")
 				});
 		
 		d3.selectAll(".leaflet-marker-icon")

@@ -63,9 +63,9 @@ function render_graph(data, callbacks) {
             .on('tick', function() {grapher.update()})
             .linkStrength(0.5)
             .linkDistance(5)
-            .charge(-5)
-            .friction(.5)
-            .alpha(10)
+            .charge(-10)
+            // .friction(.5)
+            .alpha(1)
             .start()
     }
             
@@ -107,13 +107,10 @@ function render_graph(data, callbacks) {
     // On mousedown, get ready for drag
     var startPoint;
     grapher.on('mousedown', function (e) {
-        // Set the starting point
         startPoint = getOffset(e);
-
-        grapher.on('mouseup', function onMouseUp (e) {
-            startPoint = undefined;
-            grapher.off('mouseup');
-        });
+    });
+    grapher.on('mouseup', function onMouseUp (e) {
+        startPoint = undefined;
     });
 
     // On mousemove, either pan or hover

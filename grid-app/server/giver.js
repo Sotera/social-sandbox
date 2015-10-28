@@ -131,10 +131,10 @@ Giver.prototype.load_ned = function(start_date, end_date, cb) {
       "query": {
         "range": {
           "created_time": {
-            // "from" : start_date,
-            // "to"   : end_date
-            "from" : + new Date('2015-04-30') / 1000,
-            "to"   : + new Date('2015-05-01') / 1000
+            "from" : start_date,
+            "to"   : end_date
+            // "from" : + new Date('2015-05-16 04:00:00') / 1000,
+            // "to"   : + new Date('2015-05-17 04:00:00') / 1000
           }
         }
       }

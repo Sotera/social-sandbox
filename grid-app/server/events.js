@@ -100,8 +100,22 @@ Events.prototype.update = function(x) {
 }
 
 Events.prototype.summarize = function() {    
+    const MIN_COUNT = 10;
+    
+    var max_time = _.chain(this.cluster_summaries).map(function(x) {return x.created_time.max}).max().value();
+    var min_time = _.chain(this.cluster_summaries).map(function(x) {return x.created_time.min}).min().value();
+    
+    
     return _.chain(this.cluster_summaries)
-        .filter(function(x) {return x.count > 10})
+        .map(function(x) {
+            return _.extend(x, {
+                "created_time_norm" : {
+                    "min" : (x['created_time']['min'] - min_time) / (max_time - min_time),
+                    "max" : (x['created_time']['max'] - min_time) / (max_time - min_time),
+                } 
+            });
+        })
+        .filter(function(x) {return x.count > MIN_COUNT})
         .sortBy(function(x) {return x.count})
         .value()
 }
