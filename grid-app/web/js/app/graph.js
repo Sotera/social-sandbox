@@ -28,6 +28,7 @@ function format_graph(data) {
 }
 
 var grapher;
+var force;
 function render_graph(data, callbacks) {
     console.log(data);
       // Generate some data
@@ -63,12 +64,13 @@ function render_graph(data, callbacks) {
             .on('tick', function() {grapher.update()})
             .linkStrength(0.5)
             .linkDistance(5)
-            .charge(-5)
-            .friction(.5)
+            .charge(-10)
+            // .friction(.5)
+            .alpha(1)
             .start()
     }
             
-    var force = make_force();
+    force = make_force();
 
     function getNodeIdAt(point) {
         var node = -1, x = point.x, y = point.y;
@@ -106,13 +108,10 @@ function render_graph(data, callbacks) {
     // On mousedown, get ready for drag
     var startPoint;
     grapher.on('mousedown', function (e) {
-        // Set the starting point
         startPoint = getOffset(e);
-
-        grapher.on('mouseup', function onMouseUp (e) {
-            startPoint = undefined;
-            grapher.off('mouseup');
-        });
+    });
+    grapher.on('mouseup', function onMouseUp (e) {
+        startPoint = undefined;
     });
 
     // On mousemove, either pan or hover
@@ -176,7 +175,7 @@ function render_graph(data, callbacks) {
             state.xvar = cycle[ref][0];
             state.yvar = cycle[ref][1];
             
-            // network.fix_dims(state.xvar, state.yvar);
+            network.fix_dims(state.xvar, state.yvar);
             grapher.data(network.filtered);
             
             if(force.set_p) { force.set_p(); }
@@ -234,17 +233,19 @@ function init_network(data, params) {
         lookup[node.id] = _.keys(lookup).length;
         
         var pos = {
-//            lat  : 1 - (node['lat'] - meta['lat'].min) / (meta['lat'].max - meta['lat'].min),
-//            lon  : (node['lon'] - meta['lon'].min)     / (meta['lon'].max - meta['lon'].min),
-            time : (node['time'] - meta['time'].min)   / (meta['time'].max - meta['time'].min),
+           lat  : 1 - (node['lat'] - meta['lat'].min) / (meta['lat'].max - meta['lat'].min),
+           lon  : (node['lon'] - meta['lon'].min)     / (meta['lon'].max - meta['lon'].min),
+           time : (node['time'] - meta['time'].min)   / (meta['time'].max - meta['time'].min),
         }
 
         var col = make_color(1 - pos['time'], this.use_rainbow);
         var node = _.extend(node, {
             name  : lookup[node.id],
-//            lat   : pos['lat'],
-//            lon   : pos['lon'],
-            scaled_time : pos['time'],
+            
+            lat  : pos['lat'],
+            lon  : pos['lon'],
+            time : pos['time'],
+            
             r           : 2,
             color       : col,
             hovered     : false
@@ -258,7 +259,7 @@ function init_network(data, params) {
         }
         
         node.unhover = function() {
-            this.color   = make_color(1 - this.scaled_time, network.use_rainbow);;
+            this.color   = make_color(1 - this.time, network.use_rainbow);;
             this.hovered = false;
         }
         
@@ -294,19 +295,19 @@ function init_network(data, params) {
         };
     }
     
-    // network.fix_dims = function(x, y) {
-    //     this.nodes = _.map(this.nodes, function(node) {
-    //         if(x) { node.x = node[x] * params.width;  }
-    //         if(y) { node.y = node[y] * params.height; }
-    //         return node
-    //     });
-    // }
+    network.fix_dims = function(x, y) {
+        this.nodes = _.map(this.nodes, function(node) {
+            if(x) { node.x = node[x] * params.width;  }
+            if(y) { node.y = node[y] * params.height; }
+            return node
+        });
+    }
     
     network.toggle_rainbow = function() {
         console.log('toggling rainbow');
         this.use_rainbow = !this.use_rainbow;
         this.nodes       = _.map(this.nodes, function(node) {
-            node.color = make_color(1 - node.scaled_time, this.use_rainbow);
+            node.color = make_color(1 - node.time, this.use_rainbow);
             return node
         }.bind(this));
     }
