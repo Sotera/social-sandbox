@@ -174,7 +174,7 @@ function render_graph(data, callbacks) {
             state.xvar = cycle[ref][0];
             state.yvar = cycle[ref][1];
             
-            // network.fix_dims(state.xvar, state.yvar);
+            network.fix_dims(state.xvar, state.yvar);
             grapher.data(network.filtered);
             
             if(force.set_p) { force.set_p(); }
@@ -188,7 +188,7 @@ function render_graph(data, callbacks) {
             grapher.update();
         } else if(d3.event.keyCode == 75) { // k
             // Toggle holding y
-            // force.toggle_fixX();
+            force.toggle_fixX();
         } else if(d3.event.keyCode == 76) {
             // Toggle holding x
         } else {
@@ -232,17 +232,19 @@ function init_network(data, params) {
         lookup[node.id] = _.keys(lookup).length;
         
         var pos = {
-//            lat  : 1 - (node['lat'] - meta['lat'].min) / (meta['lat'].max - meta['lat'].min),
-//            lon  : (node['lon'] - meta['lon'].min)     / (meta['lon'].max - meta['lon'].min),
-            time : (node['time'] - meta['time'].min)   / (meta['time'].max - meta['time'].min),
+           lat  : 1 - (node['lat'] - meta['lat'].min) / (meta['lat'].max - meta['lat'].min),
+           lon  : (node['lon'] - meta['lon'].min)     / (meta['lon'].max - meta['lon'].min),
+           time : (node['time'] - meta['time'].min)   / (meta['time'].max - meta['time'].min),
         }
 
         var col = make_color(1 - pos['time'], this.use_rainbow);
         var node = _.extend(node, {
             name  : lookup[node.id],
-//            lat   : pos['lat'],
-//            lon   : pos['lon'],
-            scaled_time : pos['time'],
+            
+            lat  : pos['lat'],
+            lon  : pos['lon'],
+            time : pos['time'],
+            
             r           : 2,
             color       : col,
             hovered     : false
@@ -256,7 +258,7 @@ function init_network(data, params) {
         }
         
         node.unhover = function() {
-            this.color   = make_color(1 - this.scaled_time, network.use_rainbow);;
+            this.color   = make_color(1 - this.time, network.use_rainbow);;
             this.hovered = false;
         }
         
@@ -292,19 +294,19 @@ function init_network(data, params) {
         };
     }
     
-    // network.fix_dims = function(x, y) {
-    //     this.nodes = _.map(this.nodes, function(node) {
-    //         if(x) { node.x = node[x] * params.width;  }
-    //         if(y) { node.y = node[y] * params.height; }
-    //         return node
-    //     });
-    // }
+    network.fix_dims = function(x, y) {
+        this.nodes = _.map(this.nodes, function(node) {
+            if(x) { node.x = node[x] * params.width;  }
+            if(y) { node.y = node[y] * params.height; }
+            return node
+        });
+    }
     
     network.toggle_rainbow = function() {
         console.log('toggling rainbow');
         this.use_rainbow = !this.use_rainbow;
         this.nodes       = _.map(this.nodes, function(node) {
-            node.color = make_color(1 - node.scaled_time, this.use_rainbow);
+            node.color = make_color(1 - node.time, this.use_rainbow);
             return node
         }.bind(this));
     }
