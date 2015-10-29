@@ -21,8 +21,8 @@ module.exports = function(app, server, client, config) {
       { topic: kafkaConf['RAW_TOPIC'] }
     ], { autoCommit: true, fetchMaxBytes: 1024 * 100000} );
 
-  const WHITELIST = ['hajj', 'fred','cuba','japan','richmond','suruc','caracas','charleston','boston', 'ukraine', 'southkorea', 'cleveland', 'baltimore', 'isil', 'ny', 'dc', 'waitwhat', 'national_mall', 'la'];
-  
+  // const WHITELIST = ['hajj', 'fred','cuba','japan','richmond','suruc','caracas','charleston','boston', 'ukraine', 'southkorea', 'cleveland', 'baltimore', 'isil', 'ny', 'dc', 'waitwhat', 'national_mall', 'la'];
+  const WHITELIST = ['atlanta']
   io.sockets.on('connection', function(socket) {
         
     // Giver

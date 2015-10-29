@@ -1,7 +1,7 @@
 var _ = require('underscore')._;
 
 function Events() {
-    this.thresh            = 0.4;
+    this.thresh            = 0;
     this.n                 = 0;
     this.cluster_summaries = {};
     this.id_to_cluster     = {};
@@ -37,7 +37,7 @@ Events.prototype.update_cluster_summaries = function(cluster_id) {
             'count' : prev['count'] + x['count'],
             'location'     : {
                 'lat' : {
-                    'min' : _.min([x['location']['lat']['min'], prev['location']['lat']['min']]),
+                    'min' :  _.min([x['location']['lat']['min'], prev['location']['lat']['min']]),
                     'max' : _.max([x['location']['lat']['max'], prev['location']['lat']['max']]),
                 },
                 'lon' : {
