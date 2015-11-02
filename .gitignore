@@ -1,2 +1,2 @@
-out.log
+*.log
 python/test.sh
