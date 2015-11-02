@@ -1,5 +1,2 @@
 *.log
 python/test.sh
-node_modules
-bower_components
-grid-app/server/config.js
