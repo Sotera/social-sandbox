@@ -13,11 +13,13 @@ Dependencies are:
   * https://github.com/Sotera/social-sandbox/blob/new-event-detection/grid-app/server/giver.js
   * https://github.com/Sotera/social-sandbox/blob/new-event-detection/python/ss-ned/ned_streamer_example.py
 * Caffe (http://caffe.berkeleyvision.org/) - used for featurization of images
+  * https://github.com/Sotera/social-sandbox/blob/new-event-detection/python/ss-ned/ss-image-featurize.py
 * Redis - used for storing image feature vectors used in image similarity comparisions
-
+  * https://github.com/Sotera/social-sandbox/blob/new-event-detection/python/ss-ned/ned_streamer.py
 To get going quickly, run against the Elastic instance on the Memex VPN: <https://memexproxy.com/wiki/login.action?os_destination=%2Findex.action&permissionViolation=true>
 
 ```
 cd grid-app/server/
-node server
+npm install
+node server.js
 ```
