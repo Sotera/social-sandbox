@@ -3,25 +3,14 @@ module.exports = function(app, server, client, config) {
   var io       = require('socket.io').listen(server, { log : false }),
       _        = require('underscore'),
       request  = require('request'),
-      kafka    = require('kafka-node'),
       es       = require('elasticsearch');
 
   var config   = require('./config'),
       Giver    = require('./giver'),
       NedGiver = require('./nedGiver');
 
-  var kafkaConf = {
-     'KAFKA'      : 'memex-zk01:2181',
-     'RAW_TOPIC'  : 'instagram_event'
-  };
 
-  // Kafka consumer
-  var kclient   = new kafka.Client(kafkaConf['KAFKA']),
-      consumer = new kafka.Consumer( kclient, [ 
-      { topic: kafkaConf['RAW_TOPIC'] }
-    ], { autoCommit: true, fetchMaxBytes: 1024 * 100000} );
-
-  const WHITELIST = ['hajj', 'fred','cuba','japan','richmond','suruc','caracas','charleston','boston', 'ukraine', 'southkorea', 'cleveland', 'baltimore', 'isil', 'ny', 'dc', 'waitwhat', 'national_mall', 'la'];
+  const WHITELIST = ['missou','paris','test','hajj', 'yale','cuba','yangon','london','amman','caracas','charleston','boston', 'ukraine', 'southkorea', 'cleveland', 'baltimore', 'isil', 'ny', 'dc', 'waitwhat', 'russia', 'la'];
   
   io.sockets.on('connection', function(socket) {
         
@@ -171,20 +160,5 @@ module.exports = function(app, server, client, config) {
         });
     });
     
-    // // Forward Kafka -> socket.io
-    consumer.on('message', function (message) {
-           console.log('received message @', + new Date(), message);
-    });
-    //       if(message.topic == config['RAW_TOPIC']) {
-    //         _([message.value]).flatten()
-    //          .map(function(x) {
-    //             socket.emit('raw', JSON.parse(x));
-    //          });
-    //       }
-          
-    //     } catch(e) {
-    //       console.log(' ::: error on message ::: ', e);
-    //     }
-    // });
   });
 }

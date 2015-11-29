@@ -9,7 +9,6 @@ var end_date   = undefined;
 
 var playback = false;
 
-var hover_time = undefined;
 
 var num_scrapes = 0;
 
@@ -31,6 +30,7 @@ var rickshaw_graph = new RickshawS3C({
 
 $(document).ready(function() {
 // <draw-map>
+	console.log(document.cookie);
 	var baseLayer = L.tileLayer('http://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png', {
         attribution : "Social Sandbox",
         maxZoom     : 18
@@ -142,8 +142,10 @@ function set_scrape(scrape_name) {
 	    map.fitBounds(geo_bounds);
         
 	    current_scrape_obj = response;
-	    analyze_area({ "area" : geo_bounds });
+	    // set load_events to true to load events on area selection
+	    analyze_area({ "area" : geo_bounds, "load_events": false });
 	});
+
 }
 
 function load_ned(start_date, end_date) {
@@ -229,7 +231,8 @@ function show_ned(event) {
     
     // Show timeline
     analyze_area({
-        "cluster_id" : event.id
+        "cluster_id" : event.id,
+        "load_events": false
     });
     
     // Show images
@@ -357,11 +360,10 @@ function show_ned(event) {
 //	});
 //}
 
-function loadTime(time) {
+function loadTime(time,endtime) {
 	selectedImages = [];
     
 	var bounds  = current_scrape_obj.geo_bounds;
-	var endtime = (new Date(time + (24 * 60 * 60))).getTime();
     
 	if( playback ) {
 		endtime = (new Date(time + (60*60))).getTime();
@@ -395,7 +397,15 @@ function analyze_area(params) {
                 "y" : d.count
             };
 		}));
+
+		$('#chart').on('click', function() {
+        	loadTime(rickshaw_graph.min_date,rickshaw_graph.max_date);
+    	});
 	});
+	console.log('here');
+	//if ( params.load_events ){
+		//load_ned(null,null);
+	//}
 }
 // <analyzing area>
 
@@ -573,7 +583,7 @@ function analyze_area(params) {
 			
 			setTimeout(function(){ 
 				map.removeLayer(m);
-			}, 60000);
+			}, 18000);
 		}
 		/*
 		imageHash[d.img_url] = d;
@@ -829,7 +839,8 @@ function analyze_area(params) {
 			"comments"       : $( "#init-modal-form-comment" ).val(),
 			"leaflet_bounds" : drawnItems.getLayers()[0].getBounds(), // Rectangle bounds
 			"time"           : $("#init-modal-form-start-date").val(),
-			"user"           : "dev_user"
+			"user"           : "dev_user",
+			"key"			 : getCookie('justin')
 		}, function(response) {
 			console.log('response from init_scrape :: ', response);
 			//setTimeout(load_scrape($( "#init-modal-form-name" ).val()),5000);
@@ -883,6 +894,8 @@ $('#show-user-btn').css('display', 'none');
 load_scrapes();
 // </init>
 
+
+
 })
 
 // <helpers>
@@ -890,5 +903,11 @@ function elasticsearch2leaflet(geo_bounds) {
 	var southWest = L.latLng(geo_bounds.bottom_right.lat, geo_bounds.top_left.lon);
 	var northEast = L.latLng(geo_bounds.top_left.lat, geo_bounds.bottom_right.lon);
 	return L.latLngBounds(southWest, northEast);
+}
+
+function getCookie(name) {
+  var value = "; " + document.cookie;
+  var parts = value.split("; " + name + "=");
+  if (parts.length == 2) return parts.pop().split(";").shift();
 }
 // </helpers>

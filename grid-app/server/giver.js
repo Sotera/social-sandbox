@@ -5,7 +5,7 @@ var _        = require('underscore')._,
       moment = require('moment'),
           es = require('elasticsearch');
           
-var localClient = new es.Client({hosts : ['http://10.1.94.103:9200/']});
+var localClient = new es.Client({hosts : ['http://10.1.94.103:9200/'],requestTimeout: 600000});
 
 var NewEventDetector = require('./events');
 
@@ -118,6 +118,11 @@ Giver.prototype.load_ned = function(start_date, end_date, cb) {
     var _this = this;
     
     this.ned.reset();
+
+    if ( start_date == null || end_date == null ) {
+    	start_date = new Date('2010-01-01 01:00:00').getTime() / 1000; // before instagram existed.
+    	end_date = new Date().getTime() / 1000;
+    }
     
     var query = {
       "size"    : 50000,
@@ -131,9 +136,7 @@ Giver.prototype.load_ned = function(start_date, end_date, cb) {
         "range": {
           "created_time": {
             "from" : start_date,
-            "to"   : end_date
-            // "from" : + new Date('2015-05-16 04:00:00') / 1000,
-            // "to"   : + new Date('2015-05-17 04:00:00') / 1000
+            "to"   : (+ end_date + (24 * 60 * 60 * 1000))
           }
         }
       }

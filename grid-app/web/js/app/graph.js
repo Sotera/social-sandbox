@@ -35,7 +35,7 @@ function render_graph(data, callbacks) {
     if(grapher) {
         grapher.off('mousemove');    
     }
-    
+
     grapher = undefined;
     $('#graph').css('display', 'inline')
     var div = $('#graph');
@@ -47,7 +47,7 @@ function render_graph(data, callbacks) {
     var network = init_network(data, {"width" : width, "height" : height, "callbacks" : callbacks});
 //        network.fix_dims(state.xvar, state.yvar);
         network.set_filter(state.threshold);
-    
+
     // Create a grapher instance (width, height, options)
     grapher = new Grapher({
         canvas : document.getElementById('graph'),
@@ -211,7 +211,7 @@ function init_network(data, params) {
 
     make_color = function(val, use_rainbow) {
         if(!use_rainbow) {
-            return DEFAULT_COLOR;
+            return '#' + rainbow.colourAt(val);
         } else {
             return '#' + rainbow.colourAt(val);
         }
@@ -278,6 +278,22 @@ function init_network(data, params) {
             })
         }
     }).filter(function(x) {return x != undefined}).value();
+
+    var node_data = _.pluck(network.nodes,'name');
+    var edge_data = _.map(network.links, function(x){return {"source":x.from,"target":x.to,"weight":1};});
+    var community = jLouvain().nodes(node_data).edges(edge_data);  
+    var community_assignment_result = community();
+    var node_ids = Object.keys(community_assignment_result);
+
+    network.numComms = _.max(_.values(community_assignment_result)) + 1;
+
+    network.nodes = _.map(network.nodes, function(node, i) {
+        node.community = community_assignment_result[node.name];
+        console.log(node.community);
+        return node;
+    }.bind(this));
+
+    
                 
     // This could be sped up using crossfilter
     network.set_filter = function(threshold) {
@@ -287,7 +303,6 @@ function init_network(data, params) {
             return link.sim > threshold
         });
         
-        console.log(links_sub);
                 
         this.filtered = {
             "nodes" : network.nodes,
@@ -305,9 +320,11 @@ function init_network(data, params) {
     
     network.toggle_rainbow = function() {
         console.log('toggling rainbow');
+
         this.use_rainbow = !this.use_rainbow;
         this.nodes       = _.map(this.nodes, function(node) {
-            node.color = make_color(1 - node.time, this.use_rainbow);
+            if(!this.use_rainbow){console.log((node.community + .5) / network.numComms); node.color = make_color((node.community + 1) / network.numComms, this.use_rainbow); }
+            else{node.color = make_color(1 - node.time, this.use_rainbow); }
             return node
         }.bind(this));
     }

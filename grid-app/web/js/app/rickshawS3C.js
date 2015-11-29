@@ -6,6 +6,7 @@ function RickshawS3C(params) {
     this.date_callback = params.date_callback || undefined;
     this.min_date = undefined;
     this.max_date = undefined;
+    this.hoverTime = undefined;
 }
 
 RickshawS3C.prototype.reset = function() {
@@ -40,11 +41,13 @@ RickshawS3C.prototype.init = function(data) {
         ]
     } );
 
-    var hoverTime;
     var hoverDetail = new Rickshaw.Graph.HoverDetail( {
         graph     : this.graph,
         formatter : function(series, x, y) {
-            hoverTime = x;
+            //RickshawS3C.prototype.hoverTime = x;
+            //hoverTime = x;
+            //this.hoverTime = x;
+            //RickshawS3C.prototype.this.hoverTime = x;
             return y;
         }
     });
@@ -72,7 +75,4 @@ RickshawS3C.prototype.init = function(data) {
     
     this.graph.render();
 
-    $('#chart').on('click', function() {
-        loadTime(hoverTime);
-    });
 }
