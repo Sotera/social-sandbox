@@ -49,6 +49,8 @@ q = Queue.Queue()
 
 done_scraping = True
 
+mapping = json.loads("\n".join(open('./mapping.json').readlines()))
+
 def logpictures():
   print "starting image thread..."
   while done_scraping or not q.empty():
@@ -97,9 +99,12 @@ if lat_dist < spread or lon_dist < spread:
   maxlon = maxlon - (0.01)
 realtime = True
 
-if not ic.get_mapping(index="instagram_remap",doc_type=direct):
-  body = ic.get_mapping(index="instagram_remap",doc_type="baltimore")["instagram_remap"]["mappings"]["baltimore"]
-  ic.put_mapping(index="instagram_remap",doc_type=direct,body=body)
+try:
+  es.indices.create(index='instagram_remap', ignore=400)
+  if not ic.get_mapping(index="instagram_remap",doc_type=direct):
+    ic.put_mapping(index="instagram_remap",doc_type=direct,body=mapping)
+except:
+  ic.put_mapping(index="instagram_remap",doc_type=direct,body=mapping)
 
 
 start_date = datetime(int(sdate[0:4]),int(sdate[4:6]),int(sdate[6:8]),int(sdate[8:10]))
