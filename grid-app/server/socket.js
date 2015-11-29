@@ -6,8 +6,8 @@ module.exports = function(app, server, client, config) {
       es       = require('elasticsearch');
 
   var config   = require('./config'),
-      Giver    = require('./giver'),
-      NedGiver = require('./nedGiver');
+      Giver    = require('./giver');
+      //NedGiver = require('./nedGiver');
 
 
   const WHITELIST = ['missou','paris','test','hajj', 'yale','cuba','yangon','london','amman','caracas','charleston','boston', 'ukraine', 'southkorea', 'cleveland', 'baltimore', 'isil', 'ny', 'dc', 'waitwhat', 'russia', 'la'];
