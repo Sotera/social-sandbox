@@ -125,17 +125,14 @@ app.post('/scrape', function(req, res) {
       }
      );
 
-    var featurizer = spawn('nohup',['python', '/Users/jgawrilow/ss-ned/ss-image-featurize.py',  idx],
+    var featurizer = spawn('nohup',['python', '../../python/ss-ned/ss-image-featurize.py',  idx],
       {
         detached: true,
         stdio: [ 'ignore', feat_out, feat_out ]
       }
      );
 
-    child.unref();
-    featurizer.unref();
-
-    var ner_streamer = spawn('nohup',['python', '/Users/jgawrilow/ss-ned/ned_streamer_example.py',  idx],
+    var ner_streamer = spawn('nohup',['python', '../../ss-ned/ned_streamer_example.py',  idx],
       {
         detached: true,
         stdio: [ 'ignore', event_out, event_out ]
