@@ -132,7 +132,7 @@ app.post('/scrape', function(req, res) {
       }
      );
 
-    var ner_streamer = spawn('nohup',['python', '../../ss-ned/ned_streamer_example.py',  idx],
+    var ner_streamer = spawn('nohup',['python', '../../python/ss-ned/ned_streamer_example.py',  idx],
       {
         detached: true,
         stdio: [ 'ignore', event_out, event_out ]
