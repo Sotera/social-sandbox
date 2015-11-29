@@ -7,7 +7,7 @@ Geo-temporal scraping of social media, unsupervised event detection
 
 You'll need to change <https://github.com/Sotera/social-sandbox/blob/master/grid-app/server/config.js> after getting your keys from instagram: <https://instagram.com/developer/authentication/>
 
-Dependencies are:
+Dependencies are (and places you'll need to change config/paths/etc.):
 * Elasticsearch - used for storage of image metadata
   * https://github.com/Sotera/social-sandbox/blob/new-event-detection/grid-app/server/config.js
   * https://github.com/Sotera/social-sandbox/blob/new-event-detection/grid-app/server/giver.js
