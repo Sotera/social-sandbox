@@ -1,7 +1,7 @@
 var _ = require('underscore')._;
 
 function Events() {
-    this.thresh            = 0;
+    this.thresh            = 0.4;
     this.n                 = 0;
     this.cluster_summaries = {};
     this.id_to_cluster     = {};
