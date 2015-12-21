@@ -3,11 +3,13 @@ import numpy as np
 import pandas as pd
 import redis
 import time
+import argparse
 
 # change to your path to caffe
-CAFFE_ROOT = '/Users/jgawrilow/caffe/'
+CAFFE_ROOT = '~/caffe/'
 sys.path.insert(0, CAFFE_ROOT + 'python')
 import caffe
+
 
 # change to your path to the project 
 sys.path.append('/Users/jgawrilow/project/ben/social-sandbox/python/ss-ned/image-featurizer')

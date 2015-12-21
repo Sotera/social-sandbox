@@ -5,7 +5,7 @@ var _        = require('underscore')._,
       moment = require('moment'),
           es = require('elasticsearch');
           
-var localClient = new es.Client({hosts : ['http://10.1.94.103:9200/'],requestTimeout: 600000});
+var localClient = new es.Client({hosts : ['http://localhost:9200/'],requestTimeout: 600000});
 
 var NewEventDetector = require('./events');
 
@@ -37,7 +37,7 @@ function Giver(client, socket, index) {
 	this.every_interval    = 1;//(2 * 30);  
 		
 	this.grid_precision = 6;
-	this.geo_bounds     = undefined
+	this.geo_bounds     = undefined;
 	
 	this.live     = false;
 	this.running  = false;	
@@ -64,7 +64,7 @@ Giver.prototype.show_ned_images = function(cluster_id, cb) {
                 "_id" : this.ned.cluster_to_id[cluster_id]
             }
         }
-    }
+    };
     
     this.client.search({
         index : this.index,
@@ -87,7 +87,7 @@ Giver.prototype.show_ned_images = function(cluster_id, cb) {
             })
         });
     });
-}
+};
 
 Giver.prototype.show_ned = function(cluster_id, cb) {
     var _this = this;
@@ -99,7 +99,7 @@ Giver.prototype.show_ned = function(cluster_id, cb) {
                 "_id" : this.ned.cluster_to_id[cluster_id]
             }
         }
-    }
+    };
     
     this.event_client.search({
         index : 'events',
@@ -112,7 +112,7 @@ Giver.prototype.show_ned = function(cluster_id, cb) {
             'detail' : _this.ned.make_graph(response.hits.hits)
         });
     });
-}
+};
 
 Giver.prototype.load_ned = function(start_date, end_date, cb) {
     var _this = this;
@@ -140,7 +140,7 @@ Giver.prototype.load_ned = function(start_date, end_date, cb) {
           }
         }
       }
-    }
+    };
     
     this.event_client.search({
         index : 'events',
@@ -159,7 +159,7 @@ Giver.prototype.load_ned = function(start_date, end_date, cb) {
         
         cb({ 'events' : _this.ned.summarize() });
     });
-}
+};
 
 Giver.prototype.url_from_id = function(id, cb) {
     
@@ -183,7 +183,7 @@ Giver.prototype.url_from_id = function(id, cb) {
             'id'      : hit._source.id,
         });
     });
-}
+};
 
 // >>
 
@@ -202,7 +202,7 @@ Giver.prototype.get_scrape = function(scrape_name, cb) {
 				}
 			}
 		}
-	}
+	};
 
 	this.client.search({
 		index      : this.index,
@@ -220,7 +220,7 @@ Giver.prototype.get_scrape = function(scrape_name, cb) {
 			}
 		});
 	})
-}
+};
 
 // Gets the parameters of a scrape and saves the state
 Giver.prototype.set_scrape = function(scrape_name, cb) {
@@ -240,7 +240,7 @@ Giver.prototype.set_scrape = function(scrape_name, cb) {
 		cb(response)
 
 	});
-}
+};
 // </set-scrape>
 
 // <runners>
@@ -252,19 +252,19 @@ Giver.prototype.start = function() {
 	} else {
 		console.log('!!! no scrape set yet !!!')
 	}
-}
+};
 
 Giver.prototype.stop = function() {
 	console.log('stopping giver...')
 	this.running = false;
 	clearInterval(this._process);
 	this._process = undefined;
-}
+};
 
 Giver.prototype.restart = function() {
 	this.stop();
 	this.start();
-}
+};
 
 Giver.prototype.go_live = function() {
 	this.live            = true;
@@ -273,12 +273,12 @@ Giver.prototype.go_live = function() {
 	this._speed          = 10000;
 	this.current_date    = new Date( (new Date)*1 - 1000*300 );
 	this.restart();
-}
+};
 
 Giver.prototype._next_period = function() {
 	this.current_date = helpers.dateAdd(this.current_date, this.interval, this.every_interval);
 	return this.current_date;
-}
+};
 // </runners>
 
 // giving function
@@ -289,7 +289,7 @@ Giver.prototype.give = function() {
 		
 		if(_this.running) {
 			_this._next_period();
-			console.log('giver.give :: ', _this.current_date);
+			console.log('giver.give go_liv:: ', _this.current_date);
 			_this.get_data(function(data) {
 				_this.socket.emit('give', data)	
 			});
@@ -306,7 +306,7 @@ Giver.prototype.give = function() {
 		}
 		
 	}, _this._speed);
-}
+};
 
 
 // Data for range
@@ -314,18 +314,18 @@ Giver.prototype.get_data = function(cb) {
 	var _this = this;
 	
 	async.parallel([
-		_this.live_ts_data.bind(_this),
-		_this.live_grid_data.bind(_this),
-		_this.live_image_data.bind(_this),
-		_this.live_event_data.bind(_this)
+		//_this.live_ts_data.bind(_this),
+		//_this.live_grid_data.bind(_this),
+		_this.live_image_data.bind(_this)//,
+		//_this.live_event_data.bind(_this)
 		// _this.live_trending.bind(_this)
 	], function (err, results) {
 		// Combine results
-		var out = _.reduce(results, function(a, b) {return _.extend(a, b)}, {})
+		var out = _.reduce(results, function(a, b) {return _.extend(a, b)}, {});
 		out['current_date'] = _this.current_date;
 		cb(out)
 	});		
-}
+};
 
 // <setters>
 // Dates that the giver is iterating over
@@ -334,14 +334,14 @@ Giver.prototype.set_temp_bounds = function(temp_bounds) {
 	this.temp_bounds  = temp_bounds;
 	this.current_date = temp_bounds.start_date;
 	return true;
-}
+};
 
 // Time resolution of giver
 Giver.prototype.set_interval = function(interval) {
 	this.stop();
 	this.interval = interval;
 	return true;
-}
+};
 // </setters>
 
 // <live-data>
@@ -351,7 +351,7 @@ Giver.prototype.live_grid_data = function(cb) {
 	var start_date = helpers.dateAdd(this.current_date, this.interval, -this.trailing_interval) // Over trailing
 	var end_date   = this.current_date;
 	this.get_grid_data(start_date, end_date, cb)
-}
+};
 
 Giver.prototype.live_image_data = function(cb) {
 	// Only show images since last poll
@@ -359,7 +359,7 @@ Giver.prototype.live_image_data = function(cb) {
 	var start_date = helpers.dateAdd(this.current_date, this.interval, -this.every_interval) // Since last poll
 	var end_date   = this.current_date;
 	this.get_image_data(start_date, end_date, cb)
-}
+};
 
 Giver.prototype.live_event_data = function(cb) {
 	// Only show images since last poll
@@ -367,7 +367,7 @@ Giver.prototype.live_event_data = function(cb) {
 	var start_date = helpers.dateAdd(this.current_date, this.interval, -this.every_interval) // Since last poll
 	var end_date   = this.current_date;
 	this.get_event_data(start_date, end_date, cb)
-}
+};
 
 Giver.prototype.live_ts_data = function(cb) {
 	// This one is a little tricker -- I think we want to take the floor
@@ -381,11 +381,11 @@ Giver.prototype.live_ts_data = function(cb) {
 	//var start_date = moment(+this.current_date - (+this.every_interval)).startOf(this.interval).toDate() 
 	var full_unit  = (+ moment(this.current_date).startOf(this.interval).toDate()) == (+ this.current_date)
 	this.get_ts_data(start_date, end_date, full_unit, cb)
-}
+};
 
 Giver.prototype.live_trending = function(cb) {
 	this.get_trending(cb)
-}
+};
 //</live-data>
 
 
@@ -511,7 +511,7 @@ Giver.prototype.get_event_data = function(start_date, end_date, cb) {
 				'user_id' : hit._source.user.id
 				*/
 			}
-		}).value()
+		}).value();
 		cb(null, {'events' : out});
 	});
 }

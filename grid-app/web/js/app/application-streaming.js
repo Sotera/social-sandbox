@@ -86,7 +86,7 @@ $(document).ready(function() {
 // <scrape-management>
 function load_scrapes() {
 	socket.emit('get_existing', function(response) {
-		console.log('get_existing :: ', response)
+		console.log('get_existing :: ', response);
 		_.map(response.types, function(x) {
 			load_scrape(x);
 		});
@@ -110,7 +110,7 @@ function load_scrape(scrape_name) {
     			set_scrape(scrape_name);
 			}
 		});
-		rec.addTo(map)
+		rec.addTo(map);
 
 		d3.select("#info").html(num_scrapes + " regions scraped<br>" + "Select a region or start a new scrape");
 
@@ -122,7 +122,7 @@ function load_scrape(scrape_name) {
 
 function set_scrape(scrape_name) {
     d3.select("#eventresults").remove();
-    d3.select('#images').selectAll("img").remove(); 
+    d3.select('#images').selectAll("img").remove();
     d3.select("#info").html("");
     
 	socket.emit('set_scrape', scrape_name, function(response) {
@@ -265,7 +265,7 @@ function show_ned(event) {
 
 // <socket>
 	var grid;
-	var line_data = []
+	var line_data = [];
     
 	var socket = io.connect('http://localhost:3000/');
 	socket.on('give', function(data) {
@@ -376,7 +376,7 @@ function loadTime(time,endtime) {
 	d3.select('#images').selectAll("img").remove();
     
 	socket.emit('load_time', current_scrape_name, time, endtime, bounds, function(response) {
-		console.log('load_time :: ', response)
+		console.log('load_time :: ', response);
 		_.map(response.images, function(img) {
 			 draw_image(img);
 			 sidebar_image(img);
@@ -389,14 +389,34 @@ function loadTime(time,endtime) {
 function analyze_area(params) {
 	socket.emit('analyze_area', params, function(data) {
 		console.log('analyze_area :: ', data)
-		
+		var mindate = null;
+		var maxdate = null;
         // Show timeseries
         rickshaw_graph.init(_.map(data.timeseries, function(d){
+			if(mindate == null) {
+				mindate = d.date;
+			}
+
+			if(maxdate == null) {
+				maxdate = d.date;
+			}
+
+			if(d.date > maxdate){
+				maxdate = d.date;
+			}
+
+			if(d.date < mindate){
+				mindate = d.date;
+			}
+
 			return {
                 "x" : new Date(d.date).getTime() / 1000,
                 "y" : d.count
             };
 		}));
+
+		rickshaw_graph.min_date = mindate;
+		rickshaw_graph.max_date = maxdate;
 
 		$('#chart').on('click', function() {
         	loadTime(rickshaw_graph.min_date,rickshaw_graph.max_date);

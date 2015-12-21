@@ -4,6 +4,7 @@ import urllib2
 import json
 from datetime import datetime, timedelta
 from time import mktime, sleep
+import os
 import os.path
 import sys
 import threading
@@ -38,18 +39,21 @@ parser.add_argument('--save_images', action='store_true', dest='images', help='W
 
 parser.add_argument('--send_to_kafka', action='store_true', dest='kafka', help='Whether we send new images to kafka topic.')
 
+parser.add_argument('-rootDir', dest='rootDir', action='store', help='root social-sandbox directory.')
+
 parser.add_argument('-kafka', dest='kafka_url', action='store', default="localhost:9092")
 
 parser.add_argument('--log_to_disk', action='store_true', dest='log_to_disk', help='Whether we log the data to disk or not')
 args = parser.parse_args()
+direct = args.esi
+rootDir = args.rootDir
 es = Elasticsearch([args.es])
 ic = IC(es)
 
 q = Queue.Queue()
 
 done_scraping = True
-
-mapping = json.loads("\n".join(open('./mapping.json').readlines()))
+mapping = json.loads("\n".join(open(rootDir + '/grid-app/server/mapping.json').readlines()))
 
 def logpictures():
   print "starting image thread..."
@@ -59,11 +63,12 @@ def logpictures():
       img_url = j['url']
       id = j['id']
       ext = img_url.split('/')[-1].split('.')[1]
-      if os.path.isfile(direct + '/' + id + '.' + ext) == False:
+      print img_url
+      if os.path.isfile(rootDir + '/' + direct + '/' + direct + '_images' + '/' + id + '.' + ext) == False:
         try:
-          urllib.urlretrieve(img_url, direct + '/' + id + '.' + ext)
+          urllib.urlretrieve(img_url, rootDir + '/' + direct + '/' + direct + '_images' + '/' + id + '.' + ext)
         except IOError:
-          print 'Issue with downloading image...'
+          print 'Issue with downloading image... to ' + rootDir + '/' +  direct + '/' + direct + '_images' + '/' + id + '.' + ext
     else:    
       #print 'No images to process...'
       sleep(10)
@@ -83,7 +88,8 @@ maxlat = float(args.bb.split(',')[2])
 minlon = float(args.bb.split(',')[1])
 maxlon = float(args.bb.split(',')[3])
 
-direct = args.esi
+
+print "ESI ARGUMENT!!! " + args.esi
 lat_dist = maxlat - minlat
 lon_dist = maxlon - minlon
 

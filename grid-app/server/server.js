@@ -21,7 +21,7 @@ var coded = "",
     myres = "";
 
 function grabUserToken(err,httpResponse,body) {
-  var access_token = JSON.parse(body).access_token; 
+  var access_token = con.instagram_access_token;//JSON.parse(body).access_token;
   console.log('User Token: ' + access_token);
   myres.cookie('justin',access_token, { maxAge: 900000, httpOnly: false });
   myres.redirect('/go');
@@ -73,7 +73,7 @@ app.all('*', function(req, res, next) {
 app.use(cookieParser());
 // set a cookie
 
-app.use('/go',express.static('../web'));
+app.use('/go',express.static(__dirname + '/../web'));
 
 app.get('/login',function(req,res){
   res.redirect('http://api.instagram.com/oauth/authorize/?client_id=' + con.instagram_key + '&redirect_uri=http://localhost:3000/&response_type=code');
@@ -103,47 +103,55 @@ app.post('/scrape', function(req, res) {
 
     var spawn = require('child_process').spawn;
 
-    var out = fs.openSync(idx + '.log', 'a'),
-        err = fs.openSync(idx + '.log', 'a'),
-        feat_out = fs.openSync(idx + '_feats.log', 'a');
-        event_out = fs.openSync(idx + '_events.log', 'a');
-
     console.log("Going on it..." + req.body.key);
+    console.log("output to : " + con.rootDir);
+    if (!fs.existsSync(con.rootDir  + '/' + idx)) {
+        fs.mkdirSync(con.rootDir  + '/' + idx);
+    }
+    if (!fs.existsSync(con.rootDir + '/' + idx + '/' + idx + '_images')) {
+        fs.mkdirSync(con.rootDir  + '/' + idx + '/' + idx + '_images');
+    }
+    if (!fs.existsSync(con.rootDir + '/' + idx + '/' + idx + '_meta')) {
+        fs.mkdirSync(con.rootDir  + '/' + idx + '/' + idx + '_meta');
+    }
 
-    if (!fs.existsSync('./' + idx)) {
-      fs.mkdir('./' + idx);
-    }
-    if (!fs.existsSync('./' + idx + '_meta')) {
-      fs.mkdir('./' + idx + '_meta');
-    }
-    var child = spawn('nohup',['python', '../../python/realtimegeo.py',  '-key', req.body.key, 
-      '-start_date', date,  '-bb', [min_lat,min_lon,max_lat,max_lon].join(','), '-es', 
+    var out = fs.openSync(con.rootDir  + '/' + idx + '/' + idx + '.log', 'a'),
+        err = fs.openSync(con.rootDir  + '/' + idx + '/' + idx + '.log', 'a'),
+        feat_out = fs.openSync(con.rootDir  + '/' + idx + '/' + idx + '_feats.log', 'a');
+        event_out = fs.openSync(con.rootDir  + '/' + idx + '/' + idx + '_events.log', 'a');
+
+
+    var child = spawn('nohup',['python', con.rootDir +'/python/realtimegeo.py',  '-key', req.body.key,
+      '-start_date', date, '-rootDir', con.rootDir , '-bb', [min_lat,min_lon,max_lat,max_lon].join(','), '-es',
     con.es_path, '-es_index', idx, '--save_images'],
       {
         detached: true,
         stdio: [ 'ignore', out, err ]
       }
      );
+    child.unref();
 
-    var featurizer = spawn('nohup',['python', '../../python/ss-ned/ss-image-featurize.py',  idx],
+
+
+    var featurizer = spawn('nohup',['python', con.rootDir + '/python/ss-ned/ss-image-featurize.py',  idx],
       {
         detached: true,
         stdio: [ 'ignore', feat_out, feat_out ]
       }
      );
+    featurizer.unref();
 
-    var ner_streamer = spawn('nohup',['python', '../../python/ss-ned/ned_streamer_example.py',  idx],
+    res.send({"sweet":"ok"});
+    return;
+
+    var ner_streamer = spawn('nohup',['python', con.rootDir + '/python/ss-ned/ned_streamer_example.py',  idx],
       {
         detached: true,
         stdio: [ 'ignore', event_out, event_out ]
       }
      );
-
-    child.unref();
-    featurizer.unref();
     ner_streamer.unref();
 
-    res.send({"sweet":"ok"});
 });
 
     

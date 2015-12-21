@@ -37,7 +37,7 @@ output = open(dir + '.json.csv','w')
 
 
 count = 0
-es = Elasticsearch(['http://10.1.94.103:9200/'])
+es = Elasticsearch(['http://localhost:9200/'])
 query={"size":chunksize,"fields":["_id","created_time","location.latitude","location.longitude"], "sort" : [ { "created_time" : {"order" : "asc"}}],"query" : {"match_all" : {}}}
 response= es.search(index="instagram_remap", doc_type=dir, body=query) 
 print response

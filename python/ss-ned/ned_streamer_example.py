@@ -63,7 +63,7 @@ def preload_images(path):
 
 # --
 # change to your ES instance.  This is the one on the Memex VPN
-es = Elasticsearch(['http://10.1.94.103:9200/'])
+es = Elasticsearch(['http://localhost:9200/'])
 
 location = sys.argv[1]
 

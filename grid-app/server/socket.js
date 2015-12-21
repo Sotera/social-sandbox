@@ -36,22 +36,28 @@ module.exports = function(app, server, client, config) {
         method  : "POST",
         json    : true,
         headers : {
-            "content-type": "application/json",
+            "content-type": "application/json"
         },
         body : data
       });
       
       callback({'status' : 'ok'});
-    })
+    });
     
     // List of existing scrape
     socket.on('get_existing', function(callback) {
       console.log('get_existing :: ');
-      
+
       client.indices.getMapping({
-        index : config['index'],
+        index : config['es-index'],
         type  : WHITELIST
-      }).then(function(response) {
+      },function(err,response) {
+          if(err){
+              callback({
+                  'types' : []
+              });
+              return;
+          }
         callback({
           'types' : _(response['instagram_remap'].mappings)
             .keys()
@@ -59,7 +65,7 @@ module.exports = function(app, server, client, config) {
               return _.contains(WHITELIST, d)
             })
         });
-      });
+      })
     });
     
     // Choosing an existing scrape
@@ -74,7 +80,7 @@ module.exports = function(app, server, client, config) {
         //giver.start();
       });
     });
-    
+
     socket.on('load_scrape', function(scrape_name, callback) {
         console.log('load_scrape :: ', scrape_name);
         giver.get_scrape(scrape_name, function(scrape) {
@@ -140,7 +146,7 @@ module.exports = function(app, server, client, config) {
           method: "GET",
           json: true,
           headers: {
-              "content-type": "application/json",
+              "content-type": "application/json"
           }
         }, function optionalCallback(err, httpResponse, body) {
               callback(body);
@@ -161,4 +167,4 @@ module.exports = function(app, server, client, config) {
     });
     
   });
-}
+};
