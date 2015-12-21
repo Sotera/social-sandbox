@@ -14,4 +14,7 @@ config.es_path = 'http://10.1.94.103:9200';
 // Memex elasticsearch instagram index
 config.es_index = 'instagram_remap';
 
+// path to root of project
+config.rootDir = '/home/dev/src/social-sandbox';
+
 module.exports = config;
