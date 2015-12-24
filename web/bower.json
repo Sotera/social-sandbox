@@ -1,0 +1,18 @@
+{
+  "name": "SocialSandbox",
+  "homepage": "https://github.com/Sotera/social-sandbox",
+  "description": "",
+  "main": "",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "moment": "~2.10.3",
+    "rickshaw": "~1.5.1"
+  }
+}
