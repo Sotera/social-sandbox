@@ -27,6 +27,16 @@ RUN apt-get update && apt-get install -y \
   liblmdb-dev \
   libsnappy-dev
 
+# Clone Caffe repo and move into it
+RUN cd /root && git clone https://github.com/BVLC/caffe.git && cd caffe && \
+# Copy Makefile
+  cp Makefile.config.example Makefile.config && \
+# Enable CPU-only
+  sed -i 's/# CPU_ONLY/CPU_ONLY/g' Makefile.config && \
+# Make
+  make -j"$(nproc)" all
+# Set ~/caffe as working directory
+
 RUN curl -sL https://deb.nodesource.com/setup | bash -
 RUN apt-get install -y nodejs
 
@@ -40,15 +50,6 @@ RUN apt-get install -y build-essential
 #RUN su strong-pm -c "npm install -g bower && npm cache clear"
 RUN npm install -g strong-pm && npm cache clear
 RUN npm install -g strongloop && npm cache clear
-
-# Clone Caffe repo and move into it
-RUN cd /root && git clone https://github.com/BVLC/caffe.git && cd caffe && \
-# Copy Makefile
-  cp Makefile.config.example Makefile.config && \
-# Enable CPU-only
-  sed -i 's/# CPU_ONLY/CPU_ONLY/g' Makefile.config && \
-# Make
-  make -j"$(nproc)" all
 
 # Set up some semblance of an environment
 WORKDIR /home/strong-pm
