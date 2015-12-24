@@ -37,6 +37,7 @@
   },
   {
     "name": "Caffe",
+    "Image": "caffeimage",
     "DockerFilePath": "./",
     "Hostname": "Caffe",
     "ExposedPorts": {
