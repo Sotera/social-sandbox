@@ -1,0 +1,70 @@
+[
+  {
+    "name": "ElasticSearch",
+    "Image": "elasticsearch:2.1",
+    "DockerFilePath": "",
+    "Hostname": "ElasticSearch",
+    "ExposedPorts": {
+      "9200/tcp": {}
+    },
+    "HostConfig": {
+      "PortBindings": {
+        "9200/tcp": [
+          {
+            "HostPort": "9200"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "name": "Redis",
+    "Image": "redis:3.0",
+    "DockerFilePath": "",
+    "Hostname": "Redis",
+    "ExposedPorts": {
+      "6379/tcp": {}
+    },
+    "HostConfig": {
+      "PortBindings": {
+        "6379/tcp": [
+          {
+            "HostPort": "6379"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "name": "Caffe",
+    "DockerFilePath": "./",
+    "Hostname": "Caffe",
+    "ExposedPorts": {
+      "3000/tcp": {}
+    },
+    "HostConfig": {
+      "PortBindings": {
+        "3000/tcp": [
+          {
+            "HostPort": "3000"
+          }
+        ],
+        "8701/tcp": [
+          {
+            "HostPort": "8701"
+          }
+        ]
+      }
+    },
+    "ExpressApps": [
+      {
+        "GitUrl": "https://github.com/Sotera/social-sandbox.git",
+        "GitSrcBranchName": "jl_mods",
+        "StrongLoopBranchName": "deploy",
+        "StrongLoopServerUrl": "http://localhost:8701",
+        "ServiceName": "SocialSandbox"
+      }
+    ]
+  }
+
+]

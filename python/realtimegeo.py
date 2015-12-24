@@ -53,7 +53,7 @@ ic = IC(es)
 q = Queue.Queue()
 
 done_scraping = True
-mapping = json.loads("\n".join(open(rootDir + '/grid-app/server/mapping.json').readlines()))
+mapping = json.loads("\n".join(open(rootDir + '/server/mapping.json').readlines()))
 
 def logpictures():
   print "starting image thread..."
