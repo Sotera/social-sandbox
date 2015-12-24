@@ -1,3 +1,4 @@
 node_modules
 out.log
 python/test.sh
+server/config.js
