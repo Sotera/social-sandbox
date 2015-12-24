@@ -5,6 +5,14 @@ import redis
 import time
 import argparse
 
+parser = argparse.ArgumentParser(description='Featurize some instagram data by location.')
+parser.add_argument('-rootDir', dest='rootDir', action='store', help='root social-sandbox directory.')
+parser.add_argument('-es_index', dest='esi', action='store', help='Elasticsearch index in which to store data',default="all")
+
+args = parser.parse_args()
+location = args.esi
+rootDir = args.rootDir
+
 # change to your path to caffe
 CAFFE_ROOT = '~/caffe/'
 sys.path.insert(0, CAFFE_ROOT + 'python')
@@ -12,7 +20,7 @@ import caffe
 
 
 # change to your path to the project 
-sys.path.append('/Users/jgawrilow/project/ben/social-sandbox/python/ss-ned/image-featurizer')
+sys.path.append(rootDir + '/python/ss-ned/image-featurizer')
 from caffe_featurizer import CaffeFeaturizer
 cf = CaffeFeaturizer(CAFFE_ROOT)
 
@@ -36,12 +44,12 @@ def send_to_redis(x):
 
 # --
 # Step 0: Parameters
-location  = sys.argv[1]
-#csv_path  = '/Users/jgawrilow/project/ben/social-sandbox/grid-app/server/' + location + '_features/' + location + '.csv'
-#h5_path   = '/Users/jgawrilow/project/ben/social-sandbox/grid-app/server/' + location + '_hdf5/' + location + '.h5'
+
+#csv_path  = rootDir + '/' + location + '/' + location + '_features/' + location + '.csv'
+#h5_path   = rootDir + '/' + location + '/' + location + '_hdf5/' + location + '.h5'
 
 # change to your path to the project 
-image_pth = '/Users/jgawrilow/project/ben/social-sandbox/grid-app/server/' + location + '/'
+image_pth = rootDir + '/' + location + '/' + location + '_images' + '/'
 
 
 

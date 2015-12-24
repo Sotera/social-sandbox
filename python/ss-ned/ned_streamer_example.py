@@ -68,7 +68,7 @@ es = Elasticsearch(['http://localhost:9200/'])
 location = sys.argv[1]
 
 # Object containing featurized images (created using ss-image-featurize.py)
-#imgs = preload_images('/Users/jgawrilow/project/ben/social-sandbox/grid-app/server/jjj_hdf5/jjj.h5')
+#imgs = preload_images('/Users/dev/src/social-sandbox/server/jjj_hdf5/jjj.h5')
 
 while True:
 

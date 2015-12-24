@@ -133,7 +133,8 @@ app.post('/scrape', function(req, res) {
 
 
 
-    var featurizer = spawn('nohup',['python', con.rootDir + '/python/ss-ned/ss-image-featurize.py',  idx],
+    var featurizer = spawn('nohup',['python', con.rootDir + '/python/ss-ned/ss-image-featurize.py', '-rootDir',
+            con.rootDir,  '-es_index', idx],
       {
         detached: true,
         stdio: [ 'ignore', feat_out, feat_out ]
@@ -142,15 +143,14 @@ app.post('/scrape', function(req, res) {
     featurizer.unref();
 
     res.send({"sweet":"ok"});
-    return;
 
-    var ner_streamer = spawn('nohup',['python', con.rootDir + '/python/ss-ned/ned_streamer_example.py',  idx],
+   /* var ner_streamer = spawn('nohup',['python', con.rootDir + '/python/ss-ned/ned_streamer_example.py',  idx],
       {
         detached: true,
         stdio: [ 'ignore', event_out, event_out ]
       }
      );
-    ner_streamer.unref();
+    ner_streamer.unref();*/
 
 });
 
