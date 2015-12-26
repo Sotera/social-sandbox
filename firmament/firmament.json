@@ -38,7 +38,7 @@
   {
     "name": "Caffe",
     "Image": "caffeimage",
-    "DockerFilePath": "./",
+    "DockerFilePath": "caffe",
     "Hostname": "Caffe",
     "ExposedPorts": {
       "3000/tcp": {}
@@ -63,7 +63,7 @@
         "GitSrcBranchName": "jl_mods",
         "StrongLoopBranchName": "deploy",
         "StrongLoopServerUrl": "http://localhost:8701",
-        "ServiceName": "SocialSandbox"
+        "ServiceName": "social-sandbox"
       }
     ]
   }

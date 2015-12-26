@@ -1,0 +1,7 @@
+{
+  "name": "social-sandbox",
+  "description": "Social Sandbox",
+  "repository": "https://github.com/sotera/social-sandbox",
+  "logo": "https://node-js-sample.herokuapp.com/node.svg",
+  "keywords": ["node", "angular", "loopback", "admin", "amino", "genie"]
+}

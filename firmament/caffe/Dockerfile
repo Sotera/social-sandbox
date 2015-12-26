@@ -1,11 +1,6 @@
 # Start with Ubuntu base image
 FROM ubuntu:14.04
 
-
-RUN apt-get update
-RUN apt-get install -y git
-
-
 # Install git, bc and dependencies
 RUN apt-get update && apt-get install -y \
   git \
@@ -35,7 +30,8 @@ RUN cd /root && git clone https://github.com/BVLC/caffe.git && cd caffe && \
   sed -i 's/# CPU_ONLY/CPU_ONLY/g' Makefile.config && \
 # Make
   make -j"$(nproc)" all
-# Set ~/caffe as working directory
+
+RUN cd ~
 
 RUN curl -sL https://deb.nodesource.com/setup | bash -
 RUN apt-get install -y nodejs
