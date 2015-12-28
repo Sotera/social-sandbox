@@ -1,3 +1,10 @@
+var redisAddr = process.env.REDIS_PORT_6379_TCP_ADDR||"localhost";
+var redisPort = process.env.REDIS_PORT_6379_TCP_PORT||"6379";
+var esAddr = process.env.ELASTICSEARCH_PORT_9200_TCP_ADDR||"localhost";
+var esPort = process.env.ELASTICSEARCH_PORT_9200_TCP_PORT||"9200";
+
+var redisUrl = 'http://'+redisAddr+':'+redisPort;
+var esUrl = 'http://'+esAddr+':'+esPort;
 
 // Dependencies
 var es = require('elasticsearch'),
@@ -99,7 +106,7 @@ app.post('/scrape', function(req, res) {
     var max_lon = req.body.leaflet_bounds._northEast.lng;
     
     var idx     = req.body.name;
-    var date    = req.body.time.replace(/-/g,'') + '00'
+    var date    = req.body.time.replace(/-/g,'') + '00';
 
     var spawn = require('child_process').spawn;
 
@@ -123,7 +130,7 @@ app.post('/scrape', function(req, res) {
 
     var child = spawn('nohup',['python', con.rootDir +'/python/realtimegeo.py',  '-key', req.body.key,
       '-start_date', date, '-rootDir', con.rootDir , '-bb', [min_lat,min_lon,max_lat,max_lon].join(','), '-es',
-    con.es_path, '-es_index', idx, '--save_images'],
+    esUrl, '-es_index', idx, '--save_images'],
       {
         detached: true,
         stdio: [ 'ignore', out, err ]
@@ -132,7 +139,7 @@ app.post('/scrape', function(req, res) {
     child.unref();
 
 
-
+/*
     var featurizer = spawn('nohup',['python', con.rootDir + '/python/ss-ned/ss-image-featurize.py', '-rootDir',
             con.rootDir,  '-es_index', idx],
       {
@@ -142,7 +149,7 @@ app.post('/scrape', function(req, res) {
      );
     featurizer.unref();
 
-    res.send({"sweet":"ok"});
+    res.send({"sweet":"ok"});*/
 
    /* var ner_streamer = spawn('nohup',['python', con.rootDir + '/python/ss-ned/ned_streamer_example.py',  idx],
       {
@@ -157,7 +164,7 @@ app.post('/scrape', function(req, res) {
     
 // Setup routes
 var config = {
-	'es_path' : con.es_path,
+	'es_path' : esUrl,
 	'index'   : con.es_index
 };
 

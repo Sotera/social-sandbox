@@ -1,27 +1,18 @@
 [
   {
-    "name": "ElasticSearch",
+    "name": "elasticsearch",
     "Image": "elasticsearch:2.1",
     "DockerFilePath": "",
-    "Hostname": "ElasticSearch",
+    "Hostname": "elasticsearch",
     "ExposedPorts": {
       "9200/tcp": {}
-    },
-    "HostConfig": {
-      "PortBindings": {
-        "9200/tcp": [
-          {
-            "HostPort": "9200"
-          }
-        ]
-      }
     }
   },
   {
-    "name": "Redis",
+    "name": "redis",
     "Image": "redis:3.0",
     "DockerFilePath": "",
-    "Hostname": "Redis",
+    "Hostname": "redis",
     "ExposedPorts": {
       "6379/tcp": {}
     },
@@ -36,14 +27,18 @@
     }
   },
   {
-    "name": "Caffe",
+    "name": "caffe",
     "Image": "caffeimage",
     "DockerFilePath": "caffe",
-    "Hostname": "Caffe",
+    "Hostname": "caffe",
     "ExposedPorts": {
       "3000/tcp": {}
     },
     "HostConfig": {
+      "Links": [
+        "redis:redis",
+        "elasticsearch:elasticsearch"
+      ],
       "PortBindings": {
         "3000/tcp": [
           {

@@ -4,8 +4,11 @@ var _        = require('underscore')._,
      helpers = require('./helpers'),
       moment = require('moment'),
           es = require('elasticsearch');
-          
-var localClient = new es.Client({hosts : ['http://localhost:9200/'],requestTimeout: 600000});
+
+var esAddr = process.env.ELASTICSEARCH_PORT_9200_TCP_ADDR||"localhost";
+var esPort = process.env.ELASTICSEARCH_PORT_9200_TCP_PORT||"9200";
+
+var localClient = new es.Client({hosts : ['http://'+esAddr+':'+esPort+'/'],requestTimeout: 600000});
 
 var NewEventDetector = require('./events');
 
@@ -76,7 +79,7 @@ Giver.prototype.show_ned_images = function(cluster_id, cb) {
                 return {
                     'loc' : {
                         'lat' : hit._source.location.latitude,
-                        'lon' : hit._source.location.longitude,
+                        'lon' : hit._source.location.longitude
                     },
                     'img_url' : hit._source.images.low_resolution.url,
                     'id'      : hit._source.id,
@@ -166,7 +169,7 @@ Giver.prototype.url_from_id = function(id, cb) {
     var query = {
         "_source" : ["images.low_resolution.url", "location"],
         "query"   : {  "match" : { "id" : id } }
-    }
+    };
     
     this.client.search({
         index : this.index,
@@ -177,10 +180,10 @@ Giver.prototype.url_from_id = function(id, cb) {
         cb({
             'loc' : {
                 'lat' : hit._source.location.latitude,
-                'lon' : hit._source.location.longitude,
+                'lon' : hit._source.location.longitude
             },
             'img_url' : hit._source.images.low_resolution.url,
-            'id'      : hit._source.id,
+            'id'      : hit._source.id
         });
     });
 };
