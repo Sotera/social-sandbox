@@ -16,11 +16,14 @@ var es = require('elasticsearch'),
 // Express server
 var express = require('express'),
         app = express(),
+    path = require('path'),
      server = require('http').createServer(app);
 
 var request = require('request');
 
 var con = require('./config');
+
+con.rootDir = path.resolve('~','../');
 
 app.use(require('body-parser').json());
 
