@@ -172,7 +172,7 @@ var config = {
 };
 
 var client = new es.Client({hosts : [config.es_path]});
-
+console.log("Elasticsearch Url = " + config.es_path);
 // require('./routes.js')(app, client, config);
 require('./socket')(app, server, client, config);
 
