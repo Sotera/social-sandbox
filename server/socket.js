@@ -1,11 +1,8 @@
 
-module.exports = function(app, server, client, config) {
+module.exports = function(app, server, client,config) {
   var io       = require('socket.io').listen(server, { log : false }),
       _        = require('underscore'),
       request  = require('request'),
-      es       = require('elasticsearch');
-
-  var config   = require('./config'),
       Giver    = require('./giver');
       //NedGiver = require('./nedGiver');
 
@@ -23,7 +20,7 @@ module.exports = function(app, server, client, config) {
     socket.on('realtime',    function(cb) { giver.go_live(); cb(); });
 
     socket.on('load_time', function(current_scrape_name, starttime, endtime, geo_bounds, callback) {
-        giver.get_image_data_slice(new Date(starttime * 1000), new Date(endtime * 1000), geo_bounds, function(response) {
+        giver.get_image_data_slice(starttime/1000, endtime/1000, geo_bounds, function(response) {
           callback(response);
         });
     });
@@ -49,7 +46,7 @@ module.exports = function(app, server, client, config) {
       console.log('get_existing :: ');
 
       client.indices.getMapping({
-        index : config['es-index'],
+        index : config.es_index,
         type  : WHITELIST
       },function(err,response) {
           if(err){
@@ -59,7 +56,7 @@ module.exports = function(app, server, client, config) {
               return;
           }
         callback({
-          'types' : _(response['instagram_remap'].mappings)
+          'types' : _(response[config.es_index].mappings)
             .keys()
             .filter(function(d) {
               return _.contains(WHITELIST, d)

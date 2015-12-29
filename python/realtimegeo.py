@@ -35,6 +35,8 @@ parser.add_argument('-bb', dest='bb', action='store',help='Bounding box for whic
 
 parser.add_argument('-es_index', dest='esi', action='store', help='Elasticsearch index in which to store data',default="all")
 
+parser.add_argument('-scrape_name', dest='scrape_name', action='store', help='name of the scrape',default="noname")
+
 parser.add_argument('--save_images', action='store_true', dest='images', help='Whether we save images or not to disk')
 
 parser.add_argument('--send_to_kafka', action='store_true', dest='kafka', help='Whether we send new images to kafka topic.')
@@ -45,7 +47,8 @@ parser.add_argument('-kafka', dest='kafka_url', action='store', default="localho
 
 parser.add_argument('--log_to_disk', action='store_true', dest='log_to_disk', help='Whether we log the data to disk or not')
 args = parser.parse_args()
-direct = args.esi
+es_index = args.esi
+scrapeName = args.scrape_name
 rootDir = args.rootDir
 es = Elasticsearch([args.es])
 ic = IC(es)
@@ -53,6 +56,7 @@ ic = IC(es)
 q = Queue.Queue()
 
 done_scraping = True
+print "ROOT APP DIR IN THE PYTHON SCRIPT:" + rootDir
 mapping = json.loads("\n".join(open(rootDir + '/server/mapping.json').readlines()))
 
 def logpictures():
@@ -64,11 +68,11 @@ def logpictures():
       id = j['id']
       ext = img_url.split('/')[-1].split('.')[1]
       print img_url
-      if os.path.isfile(rootDir + '/' + direct + '/' + direct + '_images' + '/' + id + '.' + ext) == False:
+      if os.path.isfile(rootDir + '/' + scrapeName + '/' + scrapeName + '_images' + '/' + id + '.' + ext) == False:
         try:
-          urllib.urlretrieve(img_url, rootDir + '/' + direct + '/' + direct + '_images' + '/' + id + '.' + ext)
+          urllib.urlretrieve(img_url, rootDir + '/' + scrapeName + '/' + scrapeName + '_images' + '/' + id + '.' + ext)
         except IOError:
-          print 'Issue with downloading image... to ' + rootDir + '/' +  direct + '/' + direct + '_images' + '/' + id + '.' + ext
+          print 'Issue with downloading image... to ' + rootDir + '/' + scrapeName + '/' + scrapeName + '_images' + '/' + id + '.' + ext
     else:    
       #print 'No images to process...'
       sleep(10)
@@ -89,7 +93,6 @@ minlon = float(args.bb.split(',')[1])
 maxlon = float(args.bb.split(',')[3])
 
 
-print "ESI ARGUMENT!!! " + args.esi
 lat_dist = maxlat - minlat
 lon_dist = maxlon - minlon
 
@@ -106,11 +109,11 @@ if lat_dist < spread or lon_dist < spread:
 realtime = True
 
 try:
-  es.indices.create(index='instagram_remap', ignore=400)
-  if not ic.get_mapping(index="instagram_remap",doc_type=direct):
-    ic.put_mapping(index="instagram_remap",doc_type=direct,body=mapping)
+  es.indices.create(index=es_index, ignore=400)
+  if not ic.get_mapping(index=es_index,doc_type=scrapeName):
+    ic.put_mapping(index=es_index,doc_type=scrapeName,body=mapping)
 except:
-  ic.put_mapping(index="instagram_remap",doc_type=direct,body=mapping)
+  ic.put_mapping(index=es_index,doc_type=scrapeName,body=mapping)
 
 
 start_date = datetime(int(sdate[0:4]),int(sdate[4:6]),int(sdate[6:8]),int(sdate[8:10]))
@@ -208,7 +211,7 @@ while realtime:
         if img['location'].get('latitude') == None or not (img['location']['latitude'] >= minlat - .005 and img['location']['longitude'] >= minlon - .005 and img['location']['latitude'] <= maxlat + .005 and img['location']['longitude'] <= maxlon + .005):
           continue
         q.put({"id":img['id'], "url":img['images']['standard_resolution']['url']})
-        indexline = { "index" : { "_index" : "instagram_remap", "_type" : direct, "_id" : img['id'] } }
+        indexline = { "index" : { "_index" : es_index, "_type" : scrapeName, "_id" : img['id'] } }
         dataline = img
         dataline['geoloc'] = { \
         "lat" : dataline['location']['latitude'], \
@@ -217,16 +220,16 @@ while realtime:
         bykey[img['id']] = dataline
         eslines.append(json.dumps(indexline) + '\n' + json.dumps(dataline))
         if args.log_to_disk:
-          open(direct + "_meta/" + file_name,"w").write('\n'.join((eslines)))
+          open(scrapeName + "_meta/" + file_name,"w").write('\n'.join((eslines)))
       if not args.log_to_disk and len(eslines) > 0:
         try:
           resp = es.bulk(body='\n'.join((eslines))).get('items',[])
         except elasticsearch.exceptions.ConnectionTimeout:
           print 'issue with es'
-          open(direct + "_meta/" + file_name,"w").write('\n'.join((eslines)))
+          open(scrapeName + "_meta/" + file_name,"w").write('\n'.join((eslines)))
         except elasticsearch.exceptions.TransportError:
           print 'issue with es'
-          open(direct + "_meta/" + file_name,"w").write('\n'.join((eslines)))
+          open(scrapeName + "_meta/" + file_name,"w").write('\n'.join((eslines)))
         if args.kafka:
           newones = [i for i in resp if i['index']['_version'] == 1]
           if len(newones) > 0:

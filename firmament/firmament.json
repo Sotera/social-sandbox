@@ -6,6 +6,15 @@
     "Hostname": "elasticsearch",
     "ExposedPorts": {
       "9200/tcp": {}
+    },
+    "HostConfig": {
+      "PortBindings": {
+        "9200/tcp": [
+          {
+            "HostPort": "9200"
+          }
+        ]
+      }
     }
   },
   {

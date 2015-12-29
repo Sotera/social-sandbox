@@ -311,7 +311,7 @@ function show_ned(event) {
 				"css_selector" : ".side-bar .col2",
 				"color" : "limegreen"
 			}
-		}
+		};
 		
 		// d3.select(params.users.css_selector).selectAll("svg").remove();
 		// draw_trending(data.users, params.users);
@@ -410,7 +410,7 @@ function analyze_area(params) {
 			}
 
 			return {
-                "x" : new Date(d.date).getTime() / 1000,
+                "x" : d.date,
                 "y" : d.count
             };
 		}));

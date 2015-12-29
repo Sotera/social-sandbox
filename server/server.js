@@ -108,32 +108,31 @@ app.post('/scrape', function(req, res) {
     var max_lat = req.body.leaflet_bounds._northEast.lat;
     var max_lon = req.body.leaflet_bounds._northEast.lng;
     
-    var idx     = req.body.name;
+    var scrapeName     = req.body.name;
     var date    = req.body.time.replace(/-/g,'') + '00';
 
     var spawn = require('child_process').spawn;
 
     console.log("Going on it..." + req.body.key);
     console.log("output to : " + con.rootDir);
-    if (!fs.existsSync(con.rootDir  + '/' + idx)) {
-        fs.mkdirSync(con.rootDir  + '/' + idx);
+    if (!fs.existsSync(con.rootDir  + '/' + scrapeName)) {
+        fs.mkdirSync(con.rootDir  + '/' + scrapeName);
     }
-    if (!fs.existsSync(con.rootDir + '/' + idx + '/' + idx + '_images')) {
-        fs.mkdirSync(con.rootDir  + '/' + idx + '/' + idx + '_images');
+    if (!fs.existsSync(con.rootDir + '/' + scrapeName + '/' + scrapeName + '_images')) {
+        fs.mkdirSync(con.rootDir  + '/' + scrapeName + '/' + scrapeName + '_images');
     }
-    if (!fs.existsSync(con.rootDir + '/' + idx + '/' + idx + '_meta')) {
-        fs.mkdirSync(con.rootDir  + '/' + idx + '/' + idx + '_meta');
+    if (!fs.existsSync(con.rootDir + '/' + scrapeName + '/' + scrapeName + '_meta')) {
+        fs.mkdirSync(con.rootDir  + '/' + scrapeName + '/' + scrapeName + '_meta');
     }
 
-    var out = fs.openSync(con.rootDir  + '/' + idx + '/' + idx + '.log', 'a'),
-        err = fs.openSync(con.rootDir  + '/' + idx + '/' + idx + '.log', 'a'),
-        feat_out = fs.openSync(con.rootDir  + '/' + idx + '/' + idx + '_feats.log', 'a');
-        event_out = fs.openSync(con.rootDir  + '/' + idx + '/' + idx + '_events.log', 'a');
-
+    var out = fs.openSync(con.rootDir  + '/' + scrapeName + '/' + scrapeName + '.log', 'a'),
+        err = fs.openSync(con.rootDir  + '/' + scrapeName + '/' + scrapeName + '.log', 'a'),
+        feat_out = fs.openSync(con.rootDir  + '/' + scrapeName + '/' + scrapeName + '_feats.log', 'a');
+        event_out = fs.openSync(con.rootDir  + '/' + scrapeName + '/' + scrapeName + '_events.log', 'a');
 
     var child = spawn('nohup',['python', con.rootDir +'/python/realtimegeo.py',  '-key', req.body.key,
       '-start_date', date, '-rootDir', con.rootDir , '-bb', [min_lat,min_lon,max_lat,max_lon].join(','), '-es',
-    esUrl, '-es_index', idx, '--save_images'],
+    esUrl, '-es_index', con.es_index, '-scrape_name', scrapeName, '--save_images'],
       {
         detached: true,
         stdio: [ 'ignore', out, err ]
@@ -144,7 +143,7 @@ app.post('/scrape', function(req, res) {
 
 /*
     var featurizer = spawn('nohup',['python', con.rootDir + '/python/ss-ned/ss-image-featurize.py', '-rootDir',
-            con.rootDir,  '-es_index', idx],
+            con.rootDir,  '-es_index', scrapeName],
       {
         detached: true,
         stdio: [ 'ignore', feat_out, feat_out ]
@@ -154,7 +153,7 @@ app.post('/scrape', function(req, res) {
 
     res.send({"sweet":"ok"});*/
 
-   /* var ner_streamer = spawn('nohup',['python', con.rootDir + '/python/ss-ned/ned_streamer_example.py',  idx],
+   /* var ner_streamer = spawn('nohup',['python', con.rootDir + '/python/ss-ned/ned_streamer_example.py',  scrapeName],
       {
         detached: true,
         stdio: [ 'ignore', event_out, event_out ]
@@ -164,15 +163,10 @@ app.post('/scrape', function(req, res) {
 
 });
 
-    
-// Setup routes
-var config = {
-	'es_path' : esUrl,
-	'index'   : con.es_index
-};
 
-var client = new es.Client({hosts : [config.es_path]});
-console.log("Elasticsearch Url = " + config.es_path);
+
+var client = new es.Client({hosts : [esUrl]});
+console.log("Elasticsearch Url = " + esUrl);
 // require('./routes.js')(app, client, config);
 require('./socket')(app, server, client, config);
 

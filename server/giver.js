@@ -214,6 +214,7 @@ Giver.prototype.get_scrape = function(scrape_name, cb) {
         searchType : "count",
         queryCache : true
 	}).then(function(response) {
+		console.log(response);
 		cb({
 			"scrape_name" : scrape_name,
 			"geo_bounds"  : response.aggregations.geo_bounds.bounds,
@@ -222,6 +223,8 @@ Giver.prototype.get_scrape = function(scrape_name, cb) {
 				"end_date"   : response.aggregations.temp_bounds.max_as_string
 			}
 		});
+	}).catch(function(reason){
+		console.log(reason);
 	})
 };
 
@@ -550,10 +553,10 @@ Giver.prototype.get_image_data = function(start_date, end_date, cb) {
 				'user'    : hit._source.user.username,
 				'user_id' : hit._source.user.id
 			}
-		}).value()
+		}).value();
 		cb(null, {'images' : out});
 	});
-}
+};
 
 Giver.prototype.get_image_data_slice = function(start_date, end_date, area, cb) {
 	var _this = this;
@@ -602,8 +605,10 @@ Giver.prototype.get_image_data_slice = function(start_date, end_date, area, cb) 
 			}
 		}).value()
 		cb({'images' : out});
+	}).catch(function(reason){
+		console.log(reason);
 	});
-}
+};
 
 Giver.prototype.get_grid_data = function(start_date, end_date, cb, area) {
 	
@@ -736,7 +741,7 @@ Giver.prototype.analyze_ts_data = function(params, cb) {
     		.map(function(x) {
     			return {
     				'count' : x['doc_count'],
-    				'date'  : x['key_as_string']
+    				'date'  : x['key']
     			}
     		});
 		
