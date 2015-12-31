@@ -670,14 +670,14 @@ Giver.prototype.analyze_area = function(params, cb) {
     }
     
     async.parallel([
-        _this.analyze_ts_data.bind(_this, params),
+        _this.analyze_ts_data.bind(_this, params)
         // _this.analyze_grid_data.bind(_this, area)
     ], function (err, results) {
         cb(
             _.reduce(results, function(a, b) {return _.extend(a, b)}, {})
         )
     })        
-}
+};
 
 Giver.prototype.analyze_grid_data = function(area, cb) {
 	var start_date = this.temp_bounds.start_date;

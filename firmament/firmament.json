@@ -64,7 +64,7 @@
     "ExpressApps": [
       {
         "GitUrl": "https://github.com/Sotera/social-sandbox.git",
-        "GitSrcBranchName": "jl_mods",
+        "GitSrcBranchName": "event_detection",
         "StrongLoopBranchName": "deploy",
         "StrongLoopServerUrl": "http://localhost:8701",
         "ServiceName": "social-sandbox"
