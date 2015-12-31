@@ -141,9 +141,8 @@ app.post('/scrape', function(req, res) {
     child.unref();
 
 
-/*
     var featurizer = spawn('nohup',['python', con.rootDir + '/python/ss-ned/ss-image-featurize.py', '-rootDir',
-            con.rootDir,  '-es_index', scrapeName],
+            con.rootDir,  '-scrape_name', scrapeName, '-redis_address', redisAddr, '-redis_port', redisPort ],
       {
         detached: true,
         stdio: [ 'ignore', feat_out, feat_out ]
@@ -151,7 +150,7 @@ app.post('/scrape', function(req, res) {
      );
     featurizer.unref();
 
-    res.send({"sweet":"ok"});*/
+    res.send({"sweet":"ok"});
 
    /* var ner_streamer = spawn('nohup',['python', con.rootDir + '/python/ss-ned/ned_streamer_example.py',  scrapeName],
       {

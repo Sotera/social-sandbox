@@ -1,5 +1,5 @@
-import os, sys, itertools, zipfile, io, h5py, re
-import numpy as np
+import os, sys, itertools,  re
+# not used? import zipfile, io, h5py,numpy as np
 import pandas as pd
 import redis
 import time
@@ -7,16 +7,19 @@ import argparse
 
 parser = argparse.ArgumentParser(description='Featurize some instagram data by location.')
 parser.add_argument('-rootDir', dest='rootDir', action='store', help='root social-sandbox directory.')
-parser.add_argument('-es_index', dest='esi', action='store', help='Elasticsearch index in which to store data',default="all")
+parser.add_argument('-scrape_name', dest='scrape_name', action='store', help='scrape name in which to store data',default="no scrape name")
+parser.add_argument('-redis_address', dest='redis_address', action='store', help='Address of redis',default="localhost")
+parser.add_argument('-redis_port', dest='redis_port', action='store', help='redis port',default="6379")
 
 args = parser.parse_args()
-location = args.esi
+location = args.scrape_name
 rootDir = args.rootDir
 
 # change to your path to caffe
-CAFFE_ROOT = '~/caffe/'
+CAFFE_ROOT = '/root/caffe/'
 sys.path.insert(0, CAFFE_ROOT + 'python')
 import caffe
+
 
 
 # change to your path to the project 
@@ -24,7 +27,7 @@ sys.path.append(rootDir + '/python/ss-ned/image-featurizer')
 from caffe_featurizer import CaffeFeaturizer
 cf = CaffeFeaturizer(CAFFE_ROOT)
 
-r = redis.StrictRedis(host='localhost', port=6379, db=0)
+r = redis.StrictRedis(host=args.redis_address, port=args.redis_port, db=0)
 
 # --
 # Utilities

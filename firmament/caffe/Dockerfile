@@ -25,8 +25,11 @@ RUN apt-get update --fix-missing && apt-get install -y wget bzip2 ca-certificate
   liblmdb-dev \
   libsnappy-dev
 
+RUN useradd -ms /bin/bash strong-pm
+RUN chown -R strong-pm:strong-pm /usr/local
+
 # Clone Caffe repo and move into it
-RUN cd /root && git clone https://github.com/BVLC/caffe.git && cd caffe && \
+RUN cd /home/strong-pm && git clone https://github.com/BVLC/caffe.git && cd caffe && \
 # Copy Makefile
   cp Makefile.config.example Makefile.config && \
 # Enable CPU-only
@@ -34,7 +37,7 @@ RUN cd /root && git clone https://github.com/BVLC/caffe.git && cd caffe && \
 # Make
   make -j"$(nproc)" all
 
-RUN cd ~
+RUN cd /home/strong-pm
 
 RUN curl -sL https://deb.nodesource.com/setup_0.12 | bash -
 RUN apt-get install -y nodejs
@@ -48,8 +51,7 @@ ENV PATH /opt/conda/bin:$PATH
 
 RUN conda install -c https://conda.anaconda.org/memex elasticsearch-py
 
-RUN useradd -ms /bin/bash strong-pm
-RUN chown -R strong-pm:strong-pm /usr/local
+RUN pip install kafka-python
 
 RUN apt-get install -y build-essential
 
@@ -63,8 +65,12 @@ RUN npm install -g strongloop && npm cache clear
 WORKDIR /home/strong-pm
 ENV HOME=/home/strong-pm
 
+RUN chown -R strong-pm:strong-pm /home/strong-pm/caffe
+
 # Run as non-privileged user inside container
 USER strong-pm
+
+RUN export PYTHONPATH=/home/strong-pm/caffe/python:$PYTHONPATH
 
 # Expose strong-pm port
 EXPOSE 8701
