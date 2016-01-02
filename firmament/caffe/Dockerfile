@@ -3,6 +3,7 @@ FROM ubuntu:14.04
 
 # Install git, bc and dependencies
 RUN apt-get update --fix-missing && apt-get install -y wget bzip2 ca-certificates \
+  sudo \
   git \
   bc \
   vim \
@@ -40,7 +41,7 @@ RUN cd /home/strong-pm && git clone https://github.com/BVLC/caffe.git && cd caff
 RUN cd /home/strong-pm
 
 RUN curl -sL https://deb.nodesource.com/setup_0.12 | bash -
-RUN apt-get install -y nodejs
+RUN su strong-pm && apt-get install -y nodejs
 
 RUN echo 'export PATH=/opt/conda/bin:$PATH' > /etc/profile.d/conda.sh && \
     wget --quiet https://repo.continuum.io/archive/Anaconda2-2.4.1-Linux-x86_64.sh && \
@@ -49,9 +50,14 @@ RUN echo 'export PATH=/opt/conda/bin:$PATH' > /etc/profile.d/conda.sh && \
 
 ENV PATH /opt/conda/bin:$PATH
 
-RUN conda install -c https://conda.anaconda.org/memex elasticsearch-py
+RUN conda install -c https://conda.anaconda.org/memex elasticsearch-py \
+    conda install -c https://conda.anaconda.org/anaconda protobuf
 
 RUN pip install kafka-python
+
+# Make Python Wrapper
+RUN cd /home/strong-pm/caffe \
+    make pycaffe
 
 RUN apt-get install -y build-essential
 
@@ -70,7 +76,7 @@ RUN chown -R strong-pm:strong-pm /home/strong-pm/caffe
 # Run as non-privileged user inside container
 USER strong-pm
 
-RUN export PYTHONPATH=/home/strong-pm/caffe/python:$PYTHONPATH
+ENV PYTHONPATH=/home/strong-pm/caffe/python:$PYTHONPATH
 
 # Expose strong-pm port
 EXPOSE 8701
