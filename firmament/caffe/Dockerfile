@@ -32,7 +32,7 @@ RUN chown -R strong-pm:strong-pm /usr/local
 # Clone Caffe repo and move into it
 RUN cd /home/strong-pm && git clone https://github.com/BVLC/caffe.git && cd caffe && \
 # just pull a preconfigured Makefile.config from our repo...cheating a little here
-  wget --quiet https://github.com/Sotera/social-sandbox/blob/event_detection/firmament/caffe/Makefile.config
+  wget --quiet https://github.com/Sotera/social-sandbox/blob/event_detection/firmament/caffe/Makefile.config && \
 # Make
   make -j"$(nproc)" all
 
