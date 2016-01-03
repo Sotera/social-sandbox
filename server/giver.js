@@ -214,7 +214,6 @@ Giver.prototype.get_scrape = function(scrape_name, cb) {
         searchType : "count",
         queryCache : true
 	}).then(function(response) {
-		console.log(response);
 		cb({
 			"scrape_name" : scrape_name,
 			"geo_bounds"  : response.aggregations.geo_bounds.bounds,

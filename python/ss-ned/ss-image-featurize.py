@@ -16,7 +16,7 @@ location = args.scrape_name
 rootDir = args.rootDir
 
 # change to your path to caffe
-CAFFE_ROOT = '/root/caffe/'
+CAFFE_ROOT = '/home/strong-pm/caffe/'
 sys.path.insert(0, CAFFE_ROOT + 'python')
 import caffe
 

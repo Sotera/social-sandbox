@@ -26,10 +26,12 @@ RUN apt-get update --fix-missing && apt-get install -y wget bzip2 ca-certificate
   liblmdb-dev \
   libsnappy-dev
 
-RUN useradd -ms /bin/bash strong-pm
-RUN chown -R strong-pm:strong-pm /usr/local
+RUN apt-get install -y build-essential
+RUN curl -sL https://deb.nodesource.com/setup_0.12 | bash -
+RUN apt-get install -y nodejs
 
-RUN cd /home/strong-pm
+RUN npm install -g strong-pm && npm cache clear
+RUN npm install -g strongloop && npm cache clear
 
 RUN echo 'export PATH=/opt/conda/bin:$PATH' > /etc/profile.d/conda.sh && \
     wget --quiet https://repo.continuum.io/archive/Anaconda2-2.4.1-Linux-x86_64.sh && \
@@ -43,6 +45,13 @@ RUN conda install -c https://conda.anaconda.org/anaconda protobuf
 
 RUN pip install kafka-python
 
+RUN useradd -ms /bin/bash strong-pm
+RUN chown -R strong-pm:strong-pm /usr/local
+
+RUN cd /home/strong-pm
+# Set up some semblance of an environment
+WORKDIR /home/strong-pm
+ENV HOME=/home/strong-pm
 
 # Clone Caffe repo and move into it
 RUN cd /home/strong-pm && git clone https://github.com/BVLC/caffe.git && cd caffe && \
@@ -53,30 +62,16 @@ RUN cd /home/strong-pm && git clone https://github.com/BVLC/caffe.git && cd caff
 
 # Make Python Wrapper
 RUN cd /home/strong-pm/caffe \
-    make pycaffe
-
-RUN cd /home/strong-pm
-
-RUN curl -sL https://deb.nodesource.com/setup_0.12 | bash -
-RUN su strong-pm && apt-get install -y nodejs
-
-RUN apt-get install -y build-essential
-
-#RUN su strong-pm -c "npm install -g strong-pm && npm cache clear"
-#RUN su strong-pm -c "npm install -g strongloop && npm cache clear"
-#RUN su strong-pm -c "npm install -g bower && npm cache clear"
-RUN npm install -g strong-pm && npm cache clear
-RUN npm install -g strongloop && npm cache clear
-
-# Set up some semblance of an environment
-WORKDIR /home/strong-pm
-ENV HOME=/home/strong-pm
+    make pycaffe \
+    make distribute \
+    wget http://dl.caffe.berkeleyvision.org/bvlc_reference_caffenet.caffemodel
 
 RUN chown -R strong-pm:strong-pm /home/strong-pm/caffe
 
 # Run as non-privileged user inside container
 USER strong-pm
 
+ENV PYTHONPATH=/home/strong-pm/caffe/distribute/python/caffe:$PYTHONPATH
 ENV PYTHONPATH=/home/strong-pm/caffe/python:$PYTHONPATH
 
 # Expose strong-pm port

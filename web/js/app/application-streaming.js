@@ -86,7 +86,7 @@ $(document).ready(function() {
 // <scrape-management>
 function load_scrapes() {
 	socket.emit('get_existing', function(response) {
-		console.log('get_existing :: ', response);
+		console.log('get_existing :: ' + JSON.stringify(response));
 		_.map(response.types, function(x) {
 			load_scrape(x);
 		});
@@ -98,7 +98,7 @@ function load_scrape(scrape_name) {
 	socket.emit('load_scrape', scrape_name, function(response) {
         
 		num_scrapes ++;
-        
+		console.log('load_scrape :: ' + scrape_name);
 		var geo_bounds = elasticsearch2leaflet(response.geo_bounds);
 		var rec = L.rectangle(geo_bounds, {
 			color       : "red",
