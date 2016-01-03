@@ -21,9 +21,21 @@ var express = require('express'),
 
 var request = require('request');
 
-var con = {};
-if(fs.existsSync('./config.js'))
+//stand-in so we dont crash right away
+var con = {
+    instagram_key : "put your client id here",
+    stagram_client_secret : "put your client secret here",
+    instagram_access_token : "put your token here",
+    es_index : 'instagram_remap'
+};
+
+if(fs.existsSync('./config.js')) {
     con = require('./config');
+}
+else{
+ console.log("Please copy /server/config.template.js to /server/config.js and edit the values.")
+}
+
 
 con.rootDir = path.resolve('~','../');
 
