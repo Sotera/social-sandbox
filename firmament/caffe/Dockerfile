@@ -13,8 +13,8 @@ RUN cd /home/strong-pm/caffe && \
   make pycaffe && \
   make distribute
 
-RUN cd /home/strong-pm/caffe/models/bvlc_reference_caffenet && \
-  wget --quiet http://dl.caffe.berkeleyvision.org/bvlc_reference_caffenet.caffemodel
+#RUN cd /home/strong-pm/caffe/models/bvlc_reference_caffenet && \
+#  wget --quiet http://dl.caffe.berkeleyvision.org/bvlc_reference_caffenet.caffemodel
 
 RUN chown -R strong-pm:strong-pm /home/strong-pm/caffe
 

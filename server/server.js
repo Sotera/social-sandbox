@@ -21,7 +21,9 @@ var express = require('express'),
 
 var request = require('request');
 
-var con = require('./config');
+var con = {};
+if(fs.statSync('./config').isFile())
+    require('./config');
 
 con.rootDir = path.resolve('~','../');
 
@@ -152,13 +154,15 @@ app.post('/scrape', function(req, res) {
 
     res.send({"sweet":"ok"});
 
-   /* var ner_streamer = spawn('nohup',['python', con.rootDir + '/python/ss-ned/ned_streamer_example.py',  scrapeName],
+    var ner_streamer = spawn('nohup',['python', con.rootDir + '/python/ss-ned/ned_streamer_example.py', '-rootDir',
+            con.rootDir, '-scrape_name', scrapeName, '-es', esUrl, '-es_index', con.es_index, '-redis_address',
+            redisAddr, '-redis_port', redisPort],
       {
         detached: true,
         stdio: [ 'ignore', event_out, event_out ]
       }
      );
-    ner_streamer.unref();*/
+    ner_streamer.unref();
 
 });
 

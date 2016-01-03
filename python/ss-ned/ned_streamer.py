@@ -31,14 +31,15 @@ class NED_STREAMER:
     }
     TIME_THRESH = None
     DIST_THRESH = None
-    LOCATION    = None
-    r = redis.StrictRedis(host='localhost', port=6379, db=0)
-    
-    def __init__(self, post_generator, LOCATION = 'null-location', TIME_THRESH = 30 * 60, DIST_THRESH = 100):
+    LOCATION = None
+
+    def __init__(self, post_generator, LOCATION='null-location', REDIS_ADDRESS='null-address', REDIS_PORT='null_port',
+                 TIME_THRESH = 30 * 60, DIST_THRESH = 100):
         self.post_generator = post_generator
-        self.LOCATION    = LOCATION
+        self.LOCATION = LOCATION
         self.TIME_THRESH = TIME_THRESH
         self.DIST_THRESH = DIST_THRESH
+        self.redis = redis.StrictRedis(host=REDIS_ADDRESS, port=REDIS_PORT, db=0)
     
     # Sequential
     def time_buffer(self, obj):     
@@ -97,12 +98,12 @@ class NED_STREAMER:
     def img_sim(self, obj):
         targ  = obj['target']['id']
         cands = obj['cands']
-        tvec  = self.r.get(targ)
+        tvec  = self.redis.get(targ)
         if tvec:
             tvec = json.loads(tvec)
         if type(tvec) != None:
             for cand in cands:
-                b = self.r.get(cand['id'])
+                b = self.redis.get(cand['id'])
                 if b:
                     b = json.loads(b)
                 cand['sim'] = self._img_sim(b, tvec)

@@ -1,4 +1,6 @@
-import h5py, json
+import h5py
+import argparse
+
 from ned_streamer import NED_STREAMER
 
 from elasticsearch import Elasticsearch
@@ -8,14 +10,34 @@ import time
 
 chunksize = 500
 
+parser = argparse.ArgumentParser(description='Scrape some instagram data by location.')
+parser.add_argument('-es', dest='es', action='store', default="http://localhost:9200/",
+                    help='Elasticsearch instance')
+parser.add_argument('-es_index', dest='esi', action='store', help='Elasticsearch index in which to store data',
+                    default="all")
+parser.add_argument('-scrape_name', dest='scrape_name', action='store', help='name of the scrape', default="no name")
+
+parser.add_argument('-rootDir', dest='rootDir', action='store', help='root social-sandbox directory.')
+parser.add_argument('-redis_address', dest='redis_address', action='store', help='Address of redis',
+                    default="localhost")
+parser.add_argument('-redis_port', dest='redis_port', action='store', help='redis port', default="6379")
+
+args = parser.parse_args()
+es_index = args.esi
+scrapeName = args.scrape_name
+rootDir = args.rootDir
+es = Elasticsearch([args.es])
+redis_address = args.redis_address
+redis_port = args.redis_port
 # --
 
-def pull_data(es,loc):
+def pull_data(elastic_search, loc):
     last_time = None
     count = 0
     results = []
-    query={"size":chunksize,"fields":["_id","created_time","location.latitude","location.longitude"], "sort" : [ { "created_time" : {"order" : "asc"}}],"query" : {"match_all" : {}}}
-    response= es.search(index="instagram_remap", doc_type=loc, body=query)
+    query = {"size": chunksize, "fields": ["_id", "created_time", "location.latitude", "location.longitude"],
+             "sort": [{"created_time": {"order": "asc"}}], "query": {"match_all": {}}}
+    response = elastic_search.search(index=es_index, doc_type=loc, body=query)
 
     count += len(response["hits"]["hits"])
     
@@ -25,8 +47,9 @@ def pull_data(es,loc):
 
     while len(response["hits"]["hits"]) > 0:
         print >> sys.stdout, count
-        query = {"size":chunksize,"fields":["_id","created_time","location.latitude","location.longitude"], "sort" : [ { "created_time" : {"order" : "asc"}}],"query" : {"range" : {"created_time":{"gt":last_time}}}}
-        response = es.search(index="instagram_remap", doc_type=loc, body=query, size=chunksize) 
+        query = {"size": chunksize, "fields": ["_id", "created_time", "location.latitude", "location.longitude"],
+                 "sort": [{"created_time": {"order": "asc"}}], "query": {"range": {"created_time": {"gt": last_time}}}}
+        response = elastic_search.search(index=es_index, doc_type=loc, body=query, size=chunksize)
         count += len(response["hits"]["hits"])
         for r in response["hits"]["hits"]:
             results.append(r)
@@ -34,9 +57,9 @@ def pull_data(es,loc):
 
     return results
 
-def stream_in(posts, mx = float('inf')):
+def stream_in(posts, mx=float('inf')):
     counter = 0
-    prev    = {'created_time' : 0}
+    prev = {'created_time': 0}
     
     for raw in posts:
         curr = {"id":raw['_id'],"created_time":raw["fields"]["created_time"][0],
@@ -52,9 +75,9 @@ def stream_in(posts, mx = float('inf')):
         counter += 1
 
 def preload_images(path):
-    img       = {}
+    img = {}
     feat_file = h5py.File(path)
-    keys      = feat_file.keys()
+    keys = feat_file.keys()
     for k in keys:
         img[k] = feat_file[k].value
     
@@ -62,27 +85,25 @@ def preload_images(path):
     return img
 
 # --
-# change to your ES instance.  This is the one on the Memex VPN
-es = Elasticsearch(['http://localhost:9200/'])
 
-location = sys.argv[1]
 
 # Object containing featurized images (created using ss-image-featurize.py)
 #imgs = preload_images('/Users/dev/src/social-sandbox/server/jjj_hdf5/jjj.h5')
 
 while True:
 
-    insta_results = pull_data(es,location)
+    insta_results = pull_data(es,scrapeName)
 
     # Generator that yields posts, in chronological order
     post_generator = stream_in(insta_results)
 
     # Run
     i = 0
-    for post in NED_STREAMER(post_generator, LOCATION = location).run(es = True):
-        #print post
+    for post in NED_STREAMER(post_generator, LOCATION=scrapeName, REDIS_ADDRESS=redis_address,
+                             REDIS_PORT=redis_port).run(es=True):
+        # print post
         try:
-            #pass
+            # pass
             es.index(index=post['_index'], doc_type=post['_type'], id=post['_id'], body=post['_source'])
         except:
             print >> 'error...but moving on' 
