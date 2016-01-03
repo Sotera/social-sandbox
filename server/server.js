@@ -166,7 +166,7 @@ app.post('/scrape', function(req, res) {
 
     res.send({"sweet":"ok"});
 
-    var ner_streamer = spawn('nohup',['python', con.rootDir + '/python/ss-ned/ned_streamer_example.py', '-rootDir',
+   /* var ner_streamer = spawn('nohup',['python', con.rootDir + '/python/ss-ned/ned_streamer_example.py', '-rootDir',
             con.rootDir, '-scrape_name', scrapeName, '-es', esUrl, '-es_index', con.es_index, '-redis_address',
             redisAddr, '-redis_port', redisPort],
       {
@@ -174,7 +174,7 @@ app.post('/scrape', function(req, res) {
         stdio: [ 'ignore', event_out, event_out ]
       }
      );
-    ner_streamer.unref();
+    ner_streamer.unref();*/
 
 });
 
