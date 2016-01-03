@@ -5,14 +5,14 @@ import redis
 import time
 import argparse
 
-parser = argparse.ArgumentParser(description='Featurize some instagram data by location.')
+parser = argparse.ArgumentParser(description='Featurize some instagram data by scrape_name.')
 parser.add_argument('-rootDir', dest='rootDir', action='store', help='root social-sandbox directory.')
 parser.add_argument('-scrape_name', dest='scrape_name', action='store', help='scrape name in which to store data',default="no scrape name")
 parser.add_argument('-redis_address', dest='redis_address', action='store', help='Address of redis',default="localhost")
 parser.add_argument('-redis_port', dest='redis_port', action='store', help='redis port',default="6379")
 
 args = parser.parse_args()
-location = args.scrape_name
+scrape_name = args.scrape_name
 rootDir = args.rootDir
 
 # change to your path to caffe
@@ -48,11 +48,11 @@ def send_to_redis(x):
 # --
 # Step 0: Parameters
 
-#csv_path  = rootDir + '/' + location + '/' + location + '_features/' + location + '.csv'
-#h5_path   = rootDir + '/' + location + '/' + location + '_hdf5/' + location + '.h5'
+#csv_path  = rootDir + '/' + scrape_name + '/' + scrape_name + '_features/' + scrape_name + '.csv'
+#h5_path   = rootDir + '/' + scrape_name + '/' + scrape_name + '_hdf5/' + scrape_name + '.h5'
 
 # change to your path to the project 
-image_pth = rootDir + '/' + location + '/' + location + '_images' + '/'
+image_pth = rootDir + '/' + scrape_name + '/' + scrape_name + '_images' + '/'
 
 
 
