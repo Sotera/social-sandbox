@@ -43,7 +43,7 @@ module.exports = function(app, server, client,config) {
     
     // List of existing scrape
     socket.on('get_existing', function(callback) {
-      console.log('get_existing :: ');
+      console.log('rec get_existing :: ');
 
       client.indices.getMapping({
         index : config.es_index,
