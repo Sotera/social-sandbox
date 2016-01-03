@@ -22,8 +22,8 @@ var express = require('express'),
 var request = require('request');
 
 var con = {};
-if(fs.statSync('./config').isFile())
-    require('./config');
+if(fs.existsSync('./config.js'))
+    con = require('./config');
 
 con.rootDir = path.resolve('~','../');
 
@@ -171,7 +171,7 @@ app.post('/scrape', function(req, res) {
 var client = new es.Client({hosts : [esUrl]});
 console.log("Elasticsearch Url = " + esUrl);
 // require('./routes.js')(app, client, config);
-require('./socket')(app, server, client, config);
+require('./socket')(app, server, client, con);
 
 server.listen(3000, function() {
   console.log("Started a server on port 3000");
