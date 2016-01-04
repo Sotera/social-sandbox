@@ -1,5 +1,5 @@
 # Start with Ubuntu base image
-FROM node:0.10
+FROM strongloop/strong-pm
 
 USER root
 
@@ -28,13 +28,10 @@ RUN apt-get update --fix-missing && apt-get install -y wget bzip2 ca-certificate
   liblmdb-dev \
   libsnappy-dev
 
-RUN useradd -ms /bin/bash strong-pm
-RUN chown -R strong-pm:strong-pm /usr/local
-
 RUN echo 'export PATH=/opt/conda/bin:$PATH' > /etc/profile.d/conda.sh && \
     wget --quiet https://repo.continuum.io/archive/Anaconda2-2.4.1-Linux-x86_64.sh && \
-    /bin/bash /Anaconda2-2.4.1-Linux-x86_64.sh -b -p /opt/conda && \
-    rm /Anaconda2-2.4.1-Linux-x86_64.sh
+    /bin/bash Anaconda2-2.4.1-Linux-x86_64.sh -b -p /opt/conda && \
+    rm Anaconda2-2.4.1-Linux-x86_64.sh
 
 ENV PATH /opt/conda/bin:$PATH
 
@@ -58,21 +55,4 @@ RUN cd /home/strong-pm/caffe && \
 
 RUN chown -R strong-pm:strong-pm /home/strong-pm/caffe
 
-ENV PYTHONPATH=/home/strong-pm/caffe/distribute/python/caffe:$PYTHONPATH
-ENV PYTHONPATH=/home/strong-pm/caffe/python:$PYTHONPATH
-
-RUN su strong-pm -c "npm install -g strong-pm && npm cache clear" && \
-    su strong-pm -c "npm install -g strongloop && npm cache clear"
-
-# Set up some semblance of an environment
-WORKDIR /home/strong-pm
-ENV HOME=/home/strong-pm
-
-# Run as non-privileged user inside container
-#USER strong-pm
-
-# Expose strong-pm port
-EXPOSE 8701
-
-ENTRYPOINT ["/usr/local/bin/sl-pm", "--base", ".", "--listen", "8701"]
-
+USER strong-pm

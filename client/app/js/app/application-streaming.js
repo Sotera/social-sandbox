@@ -267,7 +267,7 @@ function show_ned(event) {
 	var grid;
 	var line_data = [];
     
-	var socket = io.connect('http://localhost:3000/');
+	var socket = io();
 	socket.on('give', function(data) {
         // Update date
 		$('#current-date').html(data.current_date);
