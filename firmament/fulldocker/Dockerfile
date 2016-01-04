@@ -69,7 +69,7 @@ WORKDIR /home/strong-pm
 ENV HOME=/home/strong-pm
 
 # Run as non-privileged user inside container
-USER strong-pm
+#USER strong-pm
 
 # Expose strong-pm port
 EXPOSE 8701
