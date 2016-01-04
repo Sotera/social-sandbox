@@ -54,19 +54,19 @@ app.start = function() {
 
     });
 
-    app.post('/scrape', function(req, res) {
+    app.scrape = function(data) {
+        console.log("/scrape starting scrape...");
+        var min_lat = data.leaflet_bounds._southWest.lat;
+        var min_lon = data.leaflet_bounds._southWest.lng;
+        var max_lat = data.leaflet_bounds._northEast.lat;
+        var max_lon = data.leaflet_bounds._northEast.lng;
 
-        var min_lat = req.body.leaflet_bounds._southWest.lat;
-        var min_lon = req.body.leaflet_bounds._southWest.lng;
-        var max_lat = req.body.leaflet_bounds._northEast.lat;
-        var max_lon = req.body.leaflet_bounds._northEast.lng;
-
-        var scrapeName     = req.body.name;
-        var date    = req.body.time.replace(/-/g,'') + '00';
+        var scrapeName     = data.name;
+        var date    = data.time.replace(/-/g,'') + '00';
 
         var spawn = require('child_process').spawn;
 
-        console.log("Going on it..." + req.body.key);
+        console.log("Going on it..." + data.key);
         console.log("output to : " + con.rootDir);
         if (!fs.existsSync(con.rootDir  + '/' + scrapeName)) {
             fs.mkdirSync(con.rootDir  + '/' + scrapeName);
@@ -83,7 +83,7 @@ app.start = function() {
             feat_out = fs.openSync(con.rootDir  + '/' + scrapeName + '/' + scrapeName + '_feats.log', 'a');
         event_out = fs.openSync(con.rootDir  + '/' + scrapeName + '/' + scrapeName + '_events.log', 'a');
 
-        var child = spawn('nohup',['python', con.rootDir +'/python/realtimegeo.py',  '-key', req.body.key,
+        var child = spawn('nohup',['python', con.rootDir +'/python/realtimegeo.py',  '-key', data.key,
                 '-start_date', date, '-rootDir', con.rootDir , '-bb', [min_lat,min_lon,max_lat,max_lon].join(','), '-es',
                 esUrl, '-es_index', con.es_index, '-scrape_name', scrapeName, '--save_images'],
             {
@@ -103,8 +103,6 @@ app.start = function() {
         );
         featurizer.unref();
 
-        res.send({"sweet":"ok"});
-
         /* var ner_streamer = spawn('nohup',['python', con.rootDir + '/python/ss-ned/ned_streamer_example.py', '-rootDir',
          con.rootDir, '-scrape_name', scrapeName, '-es', esUrl, '-es_index', con.es_index, '-redis_address',
          redisAddr, '-redis_port', redisPort],
@@ -114,8 +112,7 @@ app.start = function() {
          }
          );
          ner_streamer.unref();*/
-
-    });
+    };
 
 
     // Requests that get this far won't be handled

@@ -27,18 +27,9 @@ module.exports = function(app, server, client,config) {
     
     // Initiating scraping
     socket.on('init_scrape', function(data, callback) {
-      console.log('initating scrape :: ', data);
-      request( {
-        url     : "http://localhost:3000/scrape",
-        method  : "POST",
-        json    : true,
-        headers : {
-            "content-type": "application/json"
-        },
-        body : data
-      });
-      
-      callback({'status' : 'ok'});
+        console.log('initating scrape :: ', data);
+        app.scrape(data);
+        callback({'status' : 'ok'});
     });
     
     // List of existing scrape

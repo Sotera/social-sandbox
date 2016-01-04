@@ -41,7 +41,7 @@
     "DockerFilePath": "caffe",
     "Hostname": "caffe",
     "ExposedPorts": {
-      "3000/tcp": {}
+      "3001/tcp": {}
     },
     "HostConfig": {
       "Links": [
@@ -67,7 +67,17 @@
         "GitSrcBranchName": "lbconversion",
         "StrongLoopBranchName": "deploy",
         "StrongLoopServerUrl": "http://localhost:8701",
-        "ServiceName": "social-sandbox"
+        "ServiceName": "social-sandbox",
+        "Scripts": [
+          {
+            "RelativeWorkingDir": "./server",
+            "Command": "bower",
+            "Args": [
+              "install",
+              "--config.interactive=false"
+            ]
+          }
+        ]
       }
     ]
   }
