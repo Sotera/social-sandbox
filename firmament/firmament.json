@@ -38,7 +38,7 @@
   {
     "name": "caffe",
     "Image": "caffeimage",
-    "DockerFilePath": "caffe",
+    "DockerFilePath": "fulldocker",
     "Hostname": "caffe",
     "ExposedPorts": {
       "3001/tcp": {}
@@ -70,7 +70,7 @@
         "ServiceName": "social-sandbox",
         "Scripts": [
           {
-            "RelativeWorkingDir": "./server",
+            "RelativeWorkingDir": ".",
             "Command": "bower",
             "Args": [
               "install",

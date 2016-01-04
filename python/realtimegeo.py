@@ -12,8 +12,6 @@ import Queue
 import argparse
 
 from elasticsearch import Elasticsearch
-from kafka.client import KafkaClient
-from kafka.producer import SimpleProducer
 import elasticsearch.exceptions
 from elasticsearch.client import IndicesClient as IC
 
@@ -44,12 +42,7 @@ parser.add_argument('-scrape_name', dest='scrape_name', action='store', help='na
 
 parser.add_argument('--save_images', action='store_true', dest='images', help='Whether we save images or not to disk')
 
-parser.add_argument('--send_to_kafka', action='store_true', dest='kafka',
-                    help='Whether we send new images to kafka topic.')
-
 parser.add_argument('-rootDir', dest='rootDir', action='store', help='root social-sandbox directory.')
-
-parser.add_argument('-kafka', dest='kafka_url', action='store', default="localhost:9092")
 
 parser.add_argument('--log_to_disk', action='store_true', dest='log_to_disk',
                     help='Whether we log the data to disk or not')
@@ -87,12 +80,6 @@ def logpictures():
             # print 'No images to process...'
             sleep(10)
 
-
-kafka = None
-producer = None
-if args.kafka:
-    kafka = KafkaClient(args.kafka_url)
-    producer = SimpleProducer(kafka)
 
 client_id = args.key
 sdate = args.start_date
@@ -246,18 +233,6 @@ while realtime:
                 except elasticsearch.exceptions.TransportError:
                     print 'issue with es'
                     open(scrapeName + "_meta/" + file_name, "w").write('\n'.join(eslines))
-                if args.kafka:
-                    newones = [i for i in resp if i['index']['_version'] == 1]
-                    if len(newones) > 0:
-                        print len(newones), "new ones!!!", str(tmp_start_date) + ' - ' + str(tmp_end_date)
-                        dudes = []
-                        for newguy in newones:
-                            if newguy['index']['_id'] in bykey:
-                                dudes.append(bykey[newguy['index']['_id']])
-                        try:
-                            producer.send_messages("instagram", json.dumps(dudes))
-                        except kafka.common.FailedPayloadsError:
-                            print "problem sending to kafka queue...move on"
 
             tmp_start_date = tmp_end_date  # make the start time equal to the previous end.
 

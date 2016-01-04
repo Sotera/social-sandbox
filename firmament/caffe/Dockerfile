@@ -18,12 +18,17 @@ RUN cd /home/strong-pm/caffe && \
 
 RUN chown -R strong-pm:strong-pm /home/strong-pm/caffe
 
-# Run as non-privileged user inside container
-USER strong-pm
-
 ENV PYTHONPATH=/home/strong-pm/caffe/distribute/python/caffe:$PYTHONPATH
 ENV PYTHONPATH=/home/strong-pm/caffe/python:$PYTHONPATH
 
+# Set up some semblance of an environment
+WORKDIR /home/strong-pm
+ENV HOME=/home/strong-pm
+
+# Run as non-privileged user inside container
+USER strong-pm
+
 # Expose strong-pm port
 EXPOSE 8701
+
 ENTRYPOINT ["/usr/bin/sl-pm", "--base", ".", "--listen", "8701"]

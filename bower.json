@@ -3,14 +3,6 @@
   "homepage": "https://github.com/Sotera/social-sandbox",
   "description": "",
   "main": "",
-  "private": true,
-  "ignore": [
-    "**/.*",
-    "node_modules",
-    "bower_components",
-    "test",
-    "tests"
-  ],
   "appPath": "client/app/",
   "dependencies": {
     "moment": "~2.10.3",

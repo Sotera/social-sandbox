@@ -26,9 +26,13 @@ RUN apt-get update --fix-missing && apt-get install -y wget bzip2 ca-certificate
   liblmdb-dev \
   libsnappy-dev
 
-RUN apt-get install -y build-essential
 RUN curl -sL https://deb.nodesource.com/setup_0.12 | bash -
 RUN apt-get install -y nodejs
+
+RUN useradd -ms /bin/bash strong-pm
+RUN chown -R strong-pm:strong-pm /usr/local
+
+RUN apt-get install -y build-essential
 
 RUN npm install -g strong-pm && npm cache clear
 RUN npm install -g strongloop && npm cache clear
@@ -45,10 +49,4 @@ RUN conda install -c https://conda.anaconda.org/anaconda protobuf
 
 RUN pip install kafka-python
 
-RUN useradd -ms /bin/bash strong-pm
-RUN chown -R strong-pm:strong-pm /usr/local
 
-RUN cd /home/strong-pm
-# Set up some semblance of an environment
-WORKDIR /home/strong-pm
-ENV HOME=/home/strong-pm
