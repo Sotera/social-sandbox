@@ -29,8 +29,8 @@ var con = {
     es_index : 'instagram_remap'
 };
 
-if(fs.existsSync('./config.js')) {
-    con = require('./config');
+if(fs.existsSync('./server/config.js')) {
+    con = require('./server/config');
 }
 else{
  console.log("Please copy /server/config.template.js to /server/config.js and edit the values.")

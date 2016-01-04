@@ -38,7 +38,7 @@
   {
     "name": "caffe",
     "Image": "caffeimage",
-    "DockerFilePath": "caffe",
+    "DockerFilePath": "full",
     "Hostname": "caffe",
     "ExposedPorts": {
       "3000/tcp": {}
