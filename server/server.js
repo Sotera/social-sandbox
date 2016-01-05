@@ -6,10 +6,9 @@ var esPort = process.env.ELASTICSEARCH_PORT_9200_TCP_PORT||"9200";
 var loopback = require('loopback');
 var boot = require('loopback-boot');
 var path = require('path');
-var redisUrl = 'http://'+redisAddr+':'+redisPort;
 var esUrl = 'http://'+esAddr+':'+esPort;
 var request = require('request');
-var myres = "";
+
 // Dependencies
 var es = require('elasticsearch'),
     fs = require('fs'),
@@ -103,7 +102,7 @@ app.start = function() {
         );
         featurizer.unref();
 
-        /* var ner_streamer = spawn('nohup',['python', con.rootDir + '/python/ss-ned/ned_streamer_example.py', '-rootDir',
+         var ner_streamer = spawn('nohup',['python', con.rootDir + '/python/ss-ned/ned_streamer_example.py', '-rootDir',
          con.rootDir, '-scrape_name', scrapeName, '-es', esUrl, '-es_index', con.es_index, '-redis_address',
          redisAddr, '-redis_port', redisPort],
          {
@@ -111,7 +110,7 @@ app.start = function() {
          stdio: [ 'ignore', event_out, event_out ]
          }
          );
-         ner_streamer.unref();*/
+         ner_streamer.unref();
     };
 
 

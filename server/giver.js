@@ -123,12 +123,14 @@ Giver.prototype.load_ned = function(start_date, end_date, cb) {
     this.ned.reset();
 
     if ( start_date == null || end_date == null ) {
-    	start_date = new Date('2010-01-01 01:00:00').getTime() / 1000; // before instagram existed.
-    	end_date = new Date().getTime() / 1000;
+    	start_date = new Date('2010-01-01 01:00:00').getTime(); // before instagram existed.
+    	end_date = new Date().getTime();
     }
-    
+    start_date/=1000;
+	end_date/=1000;
+
     var query = {
-      "size"    : 50000,
+      "size"    : 10000,
       "_source" : ['id', 'created_time', 'location', 'sims'],
       "sort"    : [
         {
@@ -139,7 +141,7 @@ Giver.prototype.load_ned = function(start_date, end_date, cb) {
         "range": {
           "created_time": {
             "from" : start_date,
-            "to"   : (+ end_date + (24 * 60 * 60 * 1000))
+            "to"   : (+ end_date + (24 * 60 * 60))
           }
         }
       }
@@ -161,7 +163,9 @@ Giver.prototype.load_ned = function(start_date, end_date, cb) {
         });
         
         cb({ 'events' : _this.ned.summarize() });
-    });
+    }).catch(function(reason){
+		console.log(reason);
+	});
 };
 
 Giver.prototype.url_from_id = function(id, cb) {

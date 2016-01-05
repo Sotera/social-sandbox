@@ -37,8 +37,8 @@
   },
   {
     "name": "caffe",
-    "Image": "caffeimage",
-    "DockerFilePath": "fulldocker",
+    "Image": "jstnldrs/caffedata:1.0",
+    "DockerFilePath": "caffedata",
     "Hostname": "caffe",
     "ExposedPorts": {
       "3001/tcp": {}

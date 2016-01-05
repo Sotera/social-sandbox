@@ -186,16 +186,16 @@ function load_ned(start_date, end_date) {
             _.map(event_recs, function(rec) {
                 rec.setStyle({"color" : "yellow"});
             });
-        })
+        });
 
         tr.append("td").append('small').text(function(d){
             var dates = [
                 moment(new Date(d['created_time']['min'] * 1000)).format('YYYY-MM-DD HH:mm'),
                 moment(new Date(d['created_time']['max'] * 1000)).format('YYYY-MM-DD HH:mm')
-            ]
+            ];
             
             return dates[0] + ' to ' + dates[1];
-        })
+        });
         
         tr.append("td").text(function(d){
             return d['count'];
@@ -374,10 +374,15 @@ function loadTime(time,endtime) {
 	}
     
 	d3.select('#images').selectAll("img").remove();
-    
+
 	socket.emit('load_time', current_scrape_name, time, endtime, bounds, function(response) {
 		console.log('load_time :: ', response);
+		var imgCount = 0;
+		var maxImgCount = 50;
 		_.map(response.images, function(img) {
+			imgCount++;
+			if(imgCount > maxImgCount)
+				return;
 			 draw_image(img);
 			 sidebar_image(img);
 	     });
@@ -821,7 +826,7 @@ function analyze_area(params) {
             $('#events-btn').text('Hide Events');
             $('#events-btn').off('click').on('click', hide_handler());
         }
-    }
+    };
     hide_handler = function() {
         return function() {
             _.map(event_recs, function(rec) {
@@ -835,7 +840,7 @@ function analyze_area(params) {
             $('#events-btn').text('Show Events')
             $('#events-btn').off('click').on('click', show_handler());
         }
-    }
+    };
     $('#events-btn').on('click', show_handler())
     
 	$('#analyze-btn').on('click', function() {
