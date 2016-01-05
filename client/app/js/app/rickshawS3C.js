@@ -16,12 +16,12 @@ RickshawS3C.prototype.reset = function() {
     
     d3.select('#timeplot').append("div").attr("id","chart");
     d3.select('#timeplot').append("div").attr("id","preview");
-}
+};
 
 RickshawS3C.prototype.update = function(x) {
     this.data.push(x);
     this.graph.update();
-}
+};
 
 RickshawS3C.prototype.init = function(data) {
     this.reset();
@@ -36,7 +36,7 @@ RickshawS3C.prototype.init = function(data) {
             {
                 'data'  : this.data,
                 'name'  : current_scrape_name,
-                'color' : "red",                
+                'color' : "red"
             }
         ]
     } );
@@ -49,12 +49,18 @@ RickshawS3C.prototype.init = function(data) {
             //this.hoverTime = x;
             //RickshawS3C.prototype.this.hoverTime = x;
             return y;
+        },
+        xFormatter: function(x) {
+            return new Date(x).toString();
         }
     });
 
-    var x_axis = new Rickshaw.Graph.Axis.Time({
+    var x_axis = new Rickshaw.Graph.Axis.X({
         'graph' : this.graph,
-        'color' : 'white'
+        'color' : 'red',
+        tickFormat: function(x){
+            return new Date(x).toLocaleDateString();
+        }
     });
     
 
@@ -75,4 +81,4 @@ RickshawS3C.prototype.init = function(data) {
     
     this.graph.render();
 
-}
+};

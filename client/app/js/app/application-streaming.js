@@ -393,7 +393,7 @@ function loadTime(time,endtime) {
 // All this does right now is show the timeseries
 function analyze_area(params) {
 	socket.emit('analyze_area', params, function(data) {
-		console.log('analyze_area :: ', data)
+		console.log('analyze_area :: ', data);
 		var mindate = null;
 		var maxdate = null;
         // Show timeseries
@@ -730,7 +730,7 @@ function analyze_area(params) {
 		    width  = w - margin.left - margin.right,
 		    height = h - margin.top - margin.bottom;
 
-		var parseDate = d3.time.format("%Y-%m-%dT%H:%M:%S.000Z").parse;
+		var parseDate = d3.time.format("%Y-%m-%d%H:%M:%S.000Z").parse;
 		// var parseDate = d3.time.format("%d-%b-%y").parse;
 
 		var x = d3.time.scale().range([0, width]);

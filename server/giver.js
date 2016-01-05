@@ -714,7 +714,7 @@ Giver.prototype.analyze_ts_data = function(params, cb) {
             }
         }        
     } else {
-        interval = 'hour'
+        interval = 'hour',
         query = {
             "query" : {
                 "terms" : {
@@ -731,7 +731,7 @@ Giver.prototype.analyze_ts_data = function(params, cb) {
                 "interval" : interval
             }
         }
-    }
+    };
     
 	this.client.search({
 		index      : this.index,
@@ -751,7 +751,7 @@ Giver.prototype.analyze_ts_data = function(params, cb) {
         console.log(timeseries);
 		cb(null, {'timeseries' : timeseries});
 	});
-}
+};
 
 // ---- Processing functions ----
 function terms_timeseries(x) {
