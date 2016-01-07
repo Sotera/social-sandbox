@@ -111,7 +111,7 @@ Events.prototype.summarize = function() {
             return _.extend(x, {
                 "created_time_norm" : {
                     "min" : (x['created_time']['min'] - min_time) / (max_time - min_time),
-                    "max" : (x['created_time']['max'] - min_time) / (max_time - min_time),
+                    "max" : (x['created_time']['max'] - min_time) / (max_time - min_time)
                 } 
             });
         })

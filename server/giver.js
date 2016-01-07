@@ -136,7 +136,7 @@ Giver.prototype.load_ned = function(start_date, end_date, cb) {
 	end_date/=1000;
 
     var query = {
-      "size"    : config.es_search_size,
+      "size"    : this.config.es_search_size,
       "_source" : ['id', 'created_time', 'location', 'sims'],
       "sort"    : [
         {
