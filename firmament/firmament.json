@@ -1,5 +1,11 @@
 [
   {
+    "name": "data-container",
+    "Image": "lukewendling\/data-container:1",
+    "DockerFilePath": "",
+    "Hostname": "data-container"
+  },
+  {
     "name": "elasticsearch",
     "Image": "elasticsearch:2.1",
     "DockerFilePath": "",
@@ -8,8 +14,11 @@
       "9200/tcp": {}
     },
     "HostConfig": {
+      "VolumesFrom": [
+        "data-container"
+      ],
       "PortBindings": {
-        "9200/tcp": [
+        "9200\/tcp": [
           {
             "HostPort": "9200"
           }
@@ -51,7 +60,7 @@
       "PortBindings": {
         "3001/tcp": [
           {
-            "HostPort": "3001"
+            "HostPort": "80"
           }
         ],
         "8701/tcp": [
