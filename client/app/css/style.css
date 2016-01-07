@@ -88,7 +88,7 @@
     bottom    : 0px;
     left      : 0px;
     right     : 0px;
-    height    : 35%;
+    height    : 25%;
     background-color : rgb(36, 35, 35);
     z-index : 3;
     border : 1px solid grey;
@@ -144,8 +144,8 @@
   }
 
   .marker {
-    width         : 2;
-    height        : 2;
+    width         : 2px;
+    height        : 2px;
     border        : 2px solid red;
     border-radius : 50%;
   }

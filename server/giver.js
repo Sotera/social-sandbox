@@ -5,17 +5,23 @@ var _        = require('underscore')._,
       moment = require('moment'),
           es = require('elasticsearch');
 
-var esAddr = process.env.ELASTICSEARCH_PORT_9200_TCP_ADDR||"localhost";
-var esPort = process.env.ELASTICSEARCH_PORT_9200_TCP_PORT||"9200";
+var esAddr = process.env.ELASTICSEARCH_PORT_9200_TCP_ADDR;
+var esPort = process.env.ELASTICSEARCH_PORT_9200_TCP_PORT;
 
-var localClient = new es.Client({hosts : ['http://'+esAddr+':'+esPort+'/'],requestTimeout: 600000});
+var localClient = null;
 
 var NewEventDetector = require('./events');
 
-function Giver(client, socket, index) {
-	
+function Giver(client, socket, config) {
+	if(!esAddr)
+		esAddr = config.es_address;
+	if(!esPort)
+		esPort = config.es_port;
+
+	localClient = new es.Client({hosts : ['http://'+esAddr+':'+esPort+'/'],requestTimeout: 600000});
+	this.config 	 = config;
     this.ned         = new NewEventDetector();
-	this.index       = index;
+	this.index       = config.es_index;
 	this.scrape_name = undefined;
 	
 	this.client       = client;
@@ -130,7 +136,7 @@ Giver.prototype.load_ned = function(start_date, end_date, cb) {
 	end_date/=1000;
 
     var query = {
-      "size"    : 10000,
+      "size"    : config.es_search_size,
       "_source" : ['id', 'created_time', 'location', 'sims'],
       "sort"    : [
         {

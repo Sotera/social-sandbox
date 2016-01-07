@@ -100,6 +100,8 @@ function load_scrape(scrape_name) {
 		num_scrapes ++;
 		console.log('load_scrape :: ' + scrape_name);
 		var geo_bounds = elasticsearch2leaflet(response.geo_bounds);
+		if(!geo_bounds)
+			return;
 		var rec = L.rectangle(geo_bounds, {
 			color       : "red",
 			weight      : 2,
@@ -925,6 +927,8 @@ load_scrapes();
 
 // <helpers>
 function elasticsearch2leaflet(geo_bounds) {
+	if(!geo_bounds)
+		return null;
 	var southWest = L.latLng(geo_bounds.bottom_right.lat, geo_bounds.top_left.lon);
 	var northEast = L.latLng(geo_bounds.top_left.lat, geo_bounds.bottom_right.lon);
 	return L.latLngBounds(southWest, northEast);

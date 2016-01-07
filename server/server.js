@@ -1,13 +1,6 @@
-var redisAddr = process.env.REDIS_PORT_6379_TCP_ADDR||"localhost";
-var redisPort = process.env.REDIS_PORT_6379_TCP_PORT||"6379";
-var esAddr = process.env.ELASTICSEARCH_PORT_9200_TCP_ADDR||"localhost";
-var esPort = process.env.ELASTICSEARCH_PORT_9200_TCP_PORT||"9200";
-
 var loopback = require('loopback');
 var boot = require('loopback-boot');
 var path = require('path');
-var esUrl = 'http://'+esAddr+':'+esPort;
-var request = require('request');
 
 // Dependencies
 var es = require('elasticsearch'),
@@ -29,6 +22,15 @@ if(fs.existsSync('./server/config.js')) {
 else{
     console.log("Please copy /server/config.template.js to /server/config.js and edit the values.")
 }
+
+var redisAddr = process.env.REDIS_PORT_6379_TCP_ADDR||"localhost";
+var redisPort = process.env.REDIS_PORT_6379_TCP_PORT||"6379";
+var esAddr = process.env.ELASTICSEARCH_PORT_9200_TCP_ADDR||config.es_address;
+var esPort = process.env.ELASTICSEARCH_PORT_9200_TCP_PORT||config.es_port;
+var esUrl = 'http://'+esAddr+':'+esPort;
+var request = require('request');
+
+
 
 con.rootDir = path.resolve('~','../');
 

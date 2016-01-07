@@ -12,7 +12,7 @@ module.exports = function(app, server, client,config) {
   io.sockets.on('connection', function(socket) {
         
     // Giver
-    var giver = new Giver(client, socket, config.es_index);
+    var giver = new Giver(client, socket, config);
     // giver.set_temp_bounds({"start_date" : new Date('2015-04-01'), "end_date" : new Date('2015-04-30')});
     
     socket.on('stop_giver',  function(cb) { giver.stop(); cb(); });
