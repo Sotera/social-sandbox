@@ -866,6 +866,7 @@ function analyze_area(params) {
 			"comments"       : $( "#init-modal-form-comment" ).val(),
 			"leaflet_bounds" : drawnItems.getLayers()[0].getBounds(), // Rectangle bounds
 			"time"           : $("#init-modal-form-start-date").val(),
+			"end_time"		 : $("#init-modal-form-end-date").val(),
 			"user"           : "dev_user",
 			"key"			 : getCookie('justin')
 		}, function(response) {

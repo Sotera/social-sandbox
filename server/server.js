@@ -64,6 +64,9 @@ app.start = function() {
 
         var scrapeName     = data.name;
         var date    = data.time.replace(/-/g,'') + '00';
+        var end_date    = null;
+        if(data.end_time)
+            end_date= data.end_time.replace(/-/g,'') + '00';
 
         var spawn = require('child_process').spawn;
 
@@ -84,9 +87,15 @@ app.start = function() {
             feat_out = fs.openSync(con.rootDir  + '/' + scrapeName + '/' + scrapeName + '_feats.log', 'a');
         event_out = fs.openSync(con.rootDir  + '/' + scrapeName + '/' + scrapeName + '_events.log', 'a');
 
-        var child = spawn('nohup',['python', con.rootDir +'/python/realtimegeo.py',  '-key', data.key,
-                '-start_date', date, '-rootDir', con.rootDir , '-bb', [min_lat,min_lon,max_lat,max_lon].join(','), '-es',
-                esUrl, '-es_index', con.es_index, '-scrape_name', scrapeName, '--save_images'],
+        var options = ['python', con.rootDir +'/python/realtimegeo.py',  '-key', data.key,
+            '-start_date', date, '-rootDir', con.rootDir , '-bb',
+            [min_lat,min_lon,max_lat,max_lon].join(','), '-es', esUrl, '-es_index', con.es_index,
+            '-scrape_name', scrapeName, '--save_images'];
+        if(end_date){
+            options.push('-end_date');
+            options.push(end_date);
+        }
+        var child = spawn('nohup',
             {
                 detached: true,
                 stdio: [ 'ignore', out, err ]
