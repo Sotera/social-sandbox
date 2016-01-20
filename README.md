@@ -22,4 +22,5 @@ To get going quickly, run against the Elastic instance on the Memex VPN: <https:
 cd grid-app/server/
 npm install
 node server.js
+go to localhost:3000/login/
 ```
