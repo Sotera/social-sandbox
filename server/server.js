@@ -95,7 +95,7 @@ app.start = function() {
             options.push('-end_date');
             options.push(end_date);
         }
-        var child = spawn('nohup',
+        var child = spawn('nohup',options,
             {
                 detached: true,
                 stdio: [ 'ignore', out, err ]
