@@ -68,13 +68,15 @@ $(document).ready(function() {
 		map.on('draw:created', function (e) {
 			console.log('e', e);
 			drawnItems.addLayer(e.layer);
-			$('#init-scrape-btn').css('display', 'inline');
+      $('#init-scrape-btn').css('display', 'inline');
+			$('#stop-scrape-btn').css('display', 'inline');
 			$('#analyze-btn').css('display', 'inline');
 		});
 
 		map.on('draw:deleted', function(e) {
 			if(drawnItems.getLayers().length == 0) {
-				$('#init-scrape-btn').css('display', 'none');
+        $('#init-scrape-btn').css('display', 'none');
+				$('#stop-scrape-btn').css('display', 'none');
 				$('#analyze-btn').css('display', 'none');
 			}
 		})
@@ -87,8 +89,8 @@ $(document).ready(function() {
 function load_scrapes() {
 	socket.emit('get_existing', function(response) {
 		console.log('emit get_existing :: ' + JSON.stringify(response));
-		_.map(response.types, function(x) {
-			load_scrape(x);
+		_.map(response.types, function(esType) {
+			load_scrape(esType);
 		});
 	});
 }
@@ -810,6 +812,12 @@ function analyze_area(params) {
 	$('#init-scrape-btn').on('click', function() {
 		$("#init-modal").modal('show');
 	});
+
+  $('#stop-scrape-btn').on('click', function() {
+    socket.emit('stop_scrape', function(response) {
+      console.log(response);
+    });
+  });
 
 	$('#show-user-btn').on('click', function() {
 		_.map(_.uniq(_.map(_.values(selectedImages),function(d){ return d.user_id;})), function(user) {

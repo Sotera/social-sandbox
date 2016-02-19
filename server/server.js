@@ -55,6 +55,18 @@ app.start = function() {
 
     });
 
+    // kill all spawned python processes
+    app.stop_scrapes = function() {
+        var spawn = require('child_process').spawn;
+        var child = spawn('pkill', ['python'],
+            {
+                detached: true,
+                stdio: 'ignore'
+            }
+        );
+        child.unref();
+    }
+
     app.scrape = function(data) {
         console.log("/scrape starting scrape...");
         var min_lat = data.leaflet_bounds._southWest.lat;

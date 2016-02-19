@@ -7,7 +7,7 @@ module.exports = function(app, server, client,config) {
       //NedGiver = require('./nedGiver');
 
 
-  const WHITELIST = ['missou','paris','test','hajj', 'yale','cuba','yangon','london','amman','caracas','charleston','boston', 'ukraine', 'southkorea', 'cleveland', 'baltimore', 'isil', 'ny', 'dc', 'waitwhat', 'russia', 'la'];
+  // const WHITELIST = ['missou','paris','test','hajj', 'yale','cuba','yangon','london','amman','caracas','charleston','boston', 'ukraine', 'southkorea', 'cleveland', 'baltimore', 'isil', 'ny', 'dc', 'waitwhat', 'russia', 'la'];
   
   io.sockets.on('connection', function(socket) {
         
@@ -20,38 +20,34 @@ module.exports = function(app, server, client,config) {
     socket.on('realtime',    function(cb) { giver.go_live(); cb(); });
 
     socket.on('load_time', function(current_scrape_name, starttime, endtime, geo_bounds, callback) {
-        giver.get_image_data_slice(starttime/1000, endtime/1000, geo_bounds, function(response) {
-          callback(response);
-        });
+      giver.get_image_data_slice(starttime/1000, endtime/1000, geo_bounds, function(response) {
+        callback(response);
+      });
     });
     
     // Initiating scraping
     socket.on('init_scrape', function(data, callback) {
-        console.log('initating scrape :: ', data);
-        app.scrape(data);
-        callback({'status' : 'ok'});
+      console.log('initiating scrape :: ', data);
+      app.scrape(data);
+      callback({'status' : 'ok'});
     });
     
+    socket.on('stop_scrape', function(callback) {
+      console.log('stop scrapes');
+      app.stop_scrapes();
+      callback({'status' : 'ok'});
+    });
+
     // List of existing scrape
     socket.on('get_existing', function(callback) {
       console.log('rec get_existing :: ');
 
       client.indices.getMapping({
-        index : config.es_index,
-        type  : WHITELIST
+        index : config.es_index
       },function(err,response) {
-          if(err){
-              callback({
-                  'types' : []
-              });
-              return;
-          }
+        if (err) throw err;
         callback({
-          'types' : _(response[config.es_index].mappings)
-            .keys()
-            .filter(function(d) {
-              return _.contains(WHITELIST, d)
-            })
+          'types' : Object.keys(response[config.es_index].mappings)
         });
       })
     });
@@ -70,55 +66,55 @@ module.exports = function(app, server, client,config) {
     });
 
     socket.on('load_scrape', function(scrape_name, callback) {
-        console.log('load_scrape :: ', scrape_name);
-        giver.get_scrape(scrape_name, function(scrape) {
-            callback(scrape);
-        });
+      console.log('load_scrape :: ', scrape_name);
+      giver.get_scrape(scrape_name, function(scrape) {
+          callback(scrape);
+      });
     });
 
     socket.on('load_events', function(scrape_name, callback) {
-        console.log('load_events :: ', scrape_name);
-        giver.get_events(scrape_name, function(events) {
-            callback(events);
-        });
+      console.log('load_events :: ', scrape_name);
+      giver.get_events(scrape_name, function(events) {
+          callback(events);
+      });
     });
     
     // <<
     
     socket.on('load_ned', function(start_date, end_date, callback) {
-        console.log('load_ned :: ', start_date, end_date);
-        giver.load_ned(start_date, end_date, function(ned) {
-            callback(ned);
-        });
+      console.log('load_ned :: ', start_date, end_date);
+      giver.load_ned(start_date, end_date, function(ned) {
+        callback(ned);
+      });
     });
 
     socket.on('show_ned', function(cluster, callback) {
-        console.log('show_ned :: ', cluster);
-        giver.show_ned(cluster, function(ned_detail) {
-            callback(ned_detail);
-        });
+      console.log('show_ned :: ', cluster);
+      giver.show_ned(cluster, function(ned_detail) {
+        callback(ned_detail);
+      });
     });
 
     socket.on('show_ned_images', function(cluster, callback) {
-        console.log('show_ned_images :: ', cluster);
-        giver.show_ned_images(cluster, function(ned_detail) {
-            callback(ned_detail);
-        });
+      console.log('show_ned_images :: ', cluster);
+      giver.show_ned_images(cluster, function(ned_detail) {
+        callback(ned_detail);
+      });
     });
 
     socket.on('url_from_id', function(id, callback) {
-        console.log('url_from_id :: ', id);
-        giver.url_from_id(id, function(d) {
-            callback(d);
-        });
+      console.log('url_from_id :: ', id);
+      giver.url_from_id(id, function(d) {
+        callback(d);
+      });
     });
     // >>
 
     socket.on('analyze_area', function(params, callback) {
-        console.log('params :: ', params);
-        giver.analyze_area(params, function(response) {
-            callback(response)
-        });
+      console.log('params :: ', params);
+      giver.analyze_area(params, function(response) {
+        callback(response)
+      });
     });
 
     socket.on('disconnect', function(){
