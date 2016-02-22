@@ -13,6 +13,9 @@
     "ExposedPorts": {
       "9200/tcp": {}
     },
+    "Env": [
+      "ES_HEAP_SIZE=4g"
+    ],
     "HostConfig": {
       "VolumesFrom": [
         "data-container"
