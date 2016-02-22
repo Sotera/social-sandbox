@@ -36,10 +36,10 @@ def chunks(l, n):
     return [l[i:i + n] for i in range(0, len(l), n)]
 
 def get_files(image_pth):
-    return [image_pth + x for x in os.listdir(image_pth) if not r.get(re.sub('.*/|\\.jpg', '', image_pth + x)) ]
+    return [image_pth + x for x in os.listdir(image_pth) if not r.get(re.search('.*/(.*?)\.jpg', image_pth + x).group(1))]
 
 def send_to_redis(x):
-    key = re.sub('.*/|\\.jpg', '', x['id'])
+    key = re.search('.*/(.*?)\.jpg', x['id']).group(1)
     value = map(float,x[:-1])
     #print >> sys.stdout key
     #print >> sys.stdout value

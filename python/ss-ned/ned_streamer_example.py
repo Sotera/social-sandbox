@@ -1,4 +1,4 @@
-import h5py
+
 import argparse
 
 from ned_streamer import NED_STREAMER
@@ -74,15 +74,15 @@ def stream_in(posts, mx=float('inf')):
             break
         counter += 1
 
-def preload_images(path):
-    img = {}
-    feat_file = h5py.File(path)
-    keys = feat_file.keys()
-    for k in keys:
-        img[k] = feat_file[k].value
+#def preload_images(path):
+#    img = {}
+#    feat_file = h5py.File(path)
+#    keys = feat_file.keys()
+#    for k in keys:
+#        img[k] = feat_file[k].value
     
-    print img
-    return img
+#    print img
+#    return img
 
 # --
 

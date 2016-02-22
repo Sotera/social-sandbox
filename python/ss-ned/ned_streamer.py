@@ -1,10 +1,7 @@
-import json, os, itertools, h5py, sys
-from time import time
-from pprint import pprint
+import itertools
 from collections import deque
 from numba import autojit
 import numpy as np
-import pandas as pd
 from scipy.spatial.distance import cosine
 import redis
 import json
