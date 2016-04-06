@@ -10,7 +10,6 @@ import threading
 import urllib
 import Queue
 import argparse
-
 from elasticsearch import Elasticsearch
 import elasticsearch.exceptions
 from elasticsearch.client import IndicesClient as IC
