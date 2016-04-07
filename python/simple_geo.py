@@ -56,7 +56,7 @@ q = Queue.Queue()
 
 done_scraping = True
 print "ROOT APP DIR IN THE PYTHON SCRIPT:" + rootDir
-mapping = json.loads("\n".join(open(rootDir + '/server/mapping.json').readlines()))
+mapping = json.loads("\n".join(open(rootDir + '/server/mapping_test.json').readlines()))
 
 
 def logpictures():
