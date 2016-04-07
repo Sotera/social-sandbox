@@ -12,6 +12,11 @@
     },
     "caption": {
       "properties": {
+        "created_time": {
+          "type": "date",
+          "format": "epoch_second",
+          "numeric_resolution": "seconds"
+        },
         "from": {
           "properties": {
             "full_name": {
@@ -49,6 +54,11 @@
         },
         "data": {
           "properties": {
+            "created_time": {
+              "type": "date",
+              "format": "epoch_second",
+              "numeric_resolution": "seconds"
+            },
             "from": {
               "properties": {
                 "full_name": {
