@@ -108,6 +108,9 @@ try:
     if not ic.get_mapping(index=es_index, doc_type=scrapeName):
         ic.put_mapping(index=es_index, doc_type=scrapeName, body=mapping)
 except:
+    print es_index
+    print scrapeName
+    print mapping
     ic.put_mapping(index=es_index, doc_type=scrapeName, body=mapping)
 
 start_date = datetime(int(sdate[0:4]), int(sdate[4:6]), int(sdate[6:8]), int(sdate[8:10]))
