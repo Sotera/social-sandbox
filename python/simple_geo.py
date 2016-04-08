@@ -46,11 +46,11 @@ parser.add_argument('-rootDir', dest='rootDir', action='store', help='root socia
 parser.add_argument('--log_to_disk', action='store_true', dest='log_to_disk',
                     help='Whether we log the data to disk or not')
 args = parser.parse_args()
-es_index = args.esi
+#es_index = args.esi
 scrapeName = args.scrape_name
 rootDir = args.rootDir
 es = Elasticsearch([args.es])
-ic = IC(es)
+#ic = IC(es)
 
 q = Queue.Queue()
 
@@ -103,15 +103,15 @@ if lat_dist < spread or lon_dist < spread:
     maxlon -= 0.01
 realtime = True
 
-try:
-    es.indices.create(index=es_index, ignore=400)
-    if not ic.get_mapping(index=es_index, doc_type=scrapeName):
-        ic.put_mapping(index=es_index, doc_type=scrapeName, body=mapping)
-except:
-    print es_index
-    print scrapeName
-    print mapping
-    ic.put_mapping(index=es_index, doc_type=scrapeName, body=mapping)
+# try:
+#     es.indices.create(index=es_index, ignore=400)
+#     if not ic.get_mapping(index=es_index, doc_type=scrapeName):
+#         ic.put_mapping(index=es_index, doc_type=scrapeName, body=mapping)
+# except:
+#     print es_index
+#     print scrapeName
+#     print mapping
+#     ic.put_mapping(index=es_index, doc_type=scrapeName, body=mapping)
 
 start_date = datetime(int(sdate[0:4]), int(sdate[4:6]), int(sdate[6:8]), int(sdate[8:10]))
 end_date = datetime(datetime.now().year, datetime.now().month, datetime.now().day, datetime.now().hour,
@@ -228,7 +228,10 @@ while realtime:
                     open(scrapeName + "_meta/" + file_name, "w").write('\n'.join(eslines))
             if not args.log_to_disk and len(eslines) > 0:
                 try:
-                    resp = es.bulk(body='\n'.join(eslines)).get('items', [])
+                    f0 = open("temp.json", "w")
+                    for line in eslines:
+                        f0.write(str(line))
+                    #resp = es.bulk(body='\n'.join(eslines)).get('items', [])
                 except elasticsearch.exceptions.ConnectionTimeout:
                     print 'issue with es'
                     open(scrapeName + "_meta/" + file_name, "w").write('\n'.join(eslines))
