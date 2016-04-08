@@ -119,7 +119,7 @@ if len(sdate)==8:
 else:
     start_date = datetime(int(sdate[0:4]), int(sdate[4:6]), int(sdate[6:8]), int(sdate[8:10]))
 if edate is not None:
-    end_date = datetime(int(edate[0:4]), int(edate[4:6], int(edate[6:8]), 23, 59, 59))
+    end_date = datetime(int(edate[0:4]), int(edate[4:6]), int(edate[6:8]), 23, 59, 59)
 else:
     end_date = datetime(datetime.now().year, datetime.now().month, datetime.now().day, datetime.now().hour,
                     datetime.now().minute)
