@@ -25,7 +25,7 @@ parser.add_argument('-key', dest='key', action='store', required=True,
 parser.add_argument('-start_date', dest='start_date', action='store', required=True,
                     help='Start date from which to pull data from in form 20140131')
 
-parser.add_argument('-end_date', dest='end_date', action='store',
+parser.add_argument('-end_date', dest='end_date', action='store', default=None,
                     help='End date from which to pull data from in form 20140131. If left out, this process will '
                          'continued to pull images forever for the last 5 minutes.')
 
@@ -82,6 +82,7 @@ def logpictures():
 
 client_id = args.key
 sdate = args.start_date
+edate = args.end_date
 
 minlat = float(args.bb.split(',')[0])
 maxlat = float(args.bb.split(',')[2])
@@ -113,12 +114,18 @@ realtime = True
 #     print mapping
 #     ic.put_mapping(index=es_index, doc_type=scrapeName, body=mapping)
 
-start_date = datetime(int(sdate[0:4]), int(sdate[4:6]), int(sdate[6:8]), int(sdate[8:10]))
-end_date = datetime(datetime.now().year, datetime.now().month, datetime.now().day, datetime.now().hour,
+if len(sdate)==8:
+    start_date = datetime(int(sdate[0:4]), int(sdate[4:6]), int(sdate[6:8]), 0)
+else:
+    start_date = datetime(int(sdate[0:4]), int(sdate[4:6]), int(sdate[6:8]), int(sdate[8:10]))
+if edate is not None:
+    end_date = datetime(int(edate[0:4]), int(edate[4:6], int(edate[6:8]), 23, 59, 59))
+else:
+    end_date = datetime(datetime.now().year, datetime.now().month, datetime.now().day, datetime.now().hour,
                     datetime.now().minute)
-if args.end_date:
-    end_date = datetime(int(args.end_date[0:4]), int(args.end_date[4:6]), int(args.end_date[6:8]),
-                        int(args.end_date[8:10]))
+# if args.end_date:
+#     end_date = datetime(int(args.end_date[0:4]), int(args.end_date[4:6]), int(args.end_date[6:8]),
+#                         int(args.end_date[8:10]))
 
 max_secs = 460800  # 128 hours
 
