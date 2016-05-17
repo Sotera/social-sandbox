@@ -100,12 +100,17 @@ Giver.prototype.show_ned_images = function(cluster_id, cb) {
 
 Giver.prototype.show_ned = function(cluster_id, cb) {
     var _this = this;
-    
+	var terms = this.ned.cluster_to_id[cluster_id];
+
+	if(terms.length > 1024){
+		terms = terms.slice(0,1023);
+	}
+
     var query = {
         "size"  : 999,
         "query" : {
             "terms" : {
-                "_id" : this.ned.cluster_to_id[cluster_id]
+                "_id" : terms
             }
         }
     };
@@ -120,7 +125,9 @@ Giver.prototype.show_ned = function(cluster_id, cb) {
         cb({
             'detail' : _this.ned.make_graph(response.hits.hits)
         });
-    });
+    }).catch(function(reason){
+		console.log(reason);
+	});
 };
 
 Giver.prototype.load_ned = function(start_date, end_date, cb) {
@@ -697,7 +704,10 @@ Giver.prototype.analyze_grid_data = function(area, cb) {
 Giver.prototype.analyze_ts_data = function(params, cb) {
 	
     var query, interval;
-    if(params.area) {
+
+
+
+	if(params.area) {
         interval = 'day'
         query = {
             // "size" : 0,
@@ -720,11 +730,17 @@ Giver.prototype.analyze_ts_data = function(params, cb) {
             }
         }        
     } else {
-        interval = 'hour',
+		var terms = this.ned.cluster_to_id[params.cluster_id];
+
+		if(terms && terms.length > 1024){
+			terms = terms.slice(0,1023);
+		}
+
+		interval = 'hour',
         query = {
             "query" : {
                 "terms" : {
-                    "id" : this.ned.cluster_to_id[params.cluster_id]
+                    "id" : terms
                 }
             }
         }
@@ -756,6 +772,8 @@ Giver.prototype.analyze_ts_data = function(params, cb) {
 		
         console.log(timeseries);
 		cb(null, {'timeseries' : timeseries});
+	}).catch(function(reason){
+		console.log(reason);
 	});
 };
 

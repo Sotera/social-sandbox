@@ -10,6 +10,7 @@ import threading
 import urllib
 import Queue
 import argparse
+import sys
 
 from elasticsearch import Elasticsearch
 import elasticsearch.exceptions
@@ -62,6 +63,7 @@ mapping = json.loads("\n".join(open(rootDir + '/server/mapping.json').readlines(
 
 def logpictures():
     print "starting image thread..."
+    num_images_downloaded = 0
     while done_scraping or not q.empty():
         if not q.empty():
             j = q.get()
@@ -69,6 +71,8 @@ def logpictures():
             id = j['id']
             ext = img_url.split('/')[-1].split('.')[1]
             print img_url
+            num_images_downloaded += 1
+            print 'Number of images Downloaded = ' + str(num_images_downloaded)
             if not os.path.isfile(rootDir + '/' + scrapeName + '/' + scrapeName + '_images' + '/' + id + '.' + ext):
                 try:
                     urllib.urlretrieve(img_url,
@@ -77,7 +81,7 @@ def logpictures():
                     print 'Issue with downloading image... to ' + rootDir + '/' + scrapeName + '/' + scrapeName + \
                           '_images' + '/' + id + '.' + ext
         else:
-            # print 'No images to process...'
+            print 'No images to process...'
             sleep(10)
 
 
@@ -122,6 +126,8 @@ max_secs = 460800  # 128 hours
 
 max_images = 40  # this is the artificial max limit instagram sets...for now we'll just make it something low
 min_images = 10  # increase the time window for any calls netting less than 10 images
+
+num_images_to_download = 0
 
 if args.images:
     imagelogger = threading.Thread(target=logpictures)
@@ -214,6 +220,8 @@ while realtime:
                                         minlon - .005 <= img['location']['longitude'] <= maxlon + .005):
                     continue
                 q.put({"id": img['id'], "url": img['images']['standard_resolution']['url']})
+                num_images_to_download += 1
+                print 'Number of images to download = ' + str(num_images_to_download)
                 indexline = {"index": {"_index": es_index, "_type": scrapeName, "_id": img['id']}}
                 dataline = img
                 dataline['geoloc'] = {
@@ -265,4 +273,7 @@ while realtime:
             start_date = end_date - timedelta(seconds=300)
 
 done_scraping = False
+while not q.empty():
+    print 'waiting for image thread to finish...'
+    sleep(10)
 print "*****Completely Finished..."

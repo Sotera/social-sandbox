@@ -65,7 +65,7 @@ app.start = function() {
             }
         );
         child.unref();
-    }
+    };
 
     app.scrape = function(data) {
         console.log("/scrape starting scrape...");
