@@ -27,7 +27,7 @@ const fs = require('fs'),
   path = require('path'),
   mkdirp = require('mkdirp'),
   dataMapping = require('./data-mapping'),
-  mapping = require('./mapping') // instagram_remap mapping
+  mapping = require('./instagram_remap')
 ;
 
 const scrollWait = '10s';
