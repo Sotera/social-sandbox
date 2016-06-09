@@ -56,6 +56,9 @@
       "3001/tcp": {}
     },
     "HostConfig": {
+      "Binds": [
+        "/tmp/sandbox/yemen/yemen_images:/tmp/sandbox-images"
+      ],
       "Links": [
         "redis:redis",
         "elasticsearch:elasticsearch"
