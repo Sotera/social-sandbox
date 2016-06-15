@@ -51,7 +51,7 @@ const range = {
     {
       range: {
         created_time: {
-          gte: '1454284800'
+          gte: '1461974400'
         }
       }
     }]
@@ -59,14 +59,16 @@ const range = {
 
 const query = {
   // _source : ['id', 'postedTime', 'geo'],
-  size    : 100,
+  size    : 50,
   query: {
     bool: range
   }
 };
 
 let countDocs = 0;
-dataMapping.createIndexWithMapping({client: destClient, index: destIndex, type: destType, mapping})
+dataMapping.createIndexWithMapping({
+  client: destClient, index: destIndex, type: destType, mapping
+})
 .then(() => {
   return srcClient.search({
     index : srcIndex,
@@ -78,15 +80,19 @@ dataMapping.createIndexWithMapping({client: destClient, index: destIndex, type: 
 .then(scroll)
 .catch(console.error);
 
+// assumes image url has file ext in path.
+// I think sandbox requires .jpg files in regex checks. LW
 function storeImage(hit) {
   let imageUrl = hit._source.images.standard_resolution.url;
   var parsed = url.parse(imageUrl);
   let dir = ['/tmp/sandbox', destType, destType + '_images'].join('/');
   mkdirp.sync(dir);
-  // console.log(parsed.pathname)
   // path + cache key
-  let imagePath = [dir, path.basename(parsed.pathname)].join('/')// + parsed.search;
-  request(imageUrl).pipe(fs.createWriteStream(imagePath));
+  // let imagePath = [dir, path.basename(parsed.pathname)].join('/')// + parsed.search;
+  let pathParts = parsed.pathname.split('.');
+  let ext = '.' + pathParts[pathParts.length-1];
+  let imagePath = [dir, hit._id].join('/')// + parsed.search;
+  request(imageUrl).pipe(fs.createWriteStream(imagePath + ext));
 }
 
 function scroll(res) {
