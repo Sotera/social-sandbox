@@ -15,6 +15,6 @@ config.es_address = 'localhost';
 
 config.es_port = 9200;
 
-config.es_search_size = 50000;
+config.es_search_size = 5000; // the more the merrier! but it might crash you!
 
 module.exports = config;
