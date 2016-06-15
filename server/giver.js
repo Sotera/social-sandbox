@@ -20,14 +20,14 @@ function Giver(client, socket, config) {
 
 	localClient = new es.Client({hosts : ['http://'+esAddr+':'+esPort+'/'],requestTimeout: 600000});
 	this.config 	 = config;
-    this.ned         = new NewEventDetector();
+  this.ned         = new NewEventDetector();
 	this.index       = config.es_index;
 	this.scrape_name = undefined;
 	
 	this.client       = client;
-    this.event_client = localClient || client;
+  this.event_client = localClient || client;
 	
-    this.socket = socket;
+  this.socket = socket;
 
 	this.temp_bounds  = undefined;
 
@@ -100,11 +100,11 @@ Giver.prototype.show_ned_images = function(cluster_id, cb) {
 
 Giver.prototype.show_ned = function(cluster_id, cb) {
     var _this = this;
-	var terms = this.ned.cluster_to_id[cluster_id];
+  	var terms = this.ned.cluster_to_id[cluster_id];
 
-	if(terms.length > 1024){
-		terms = terms.slice(0,1023);
-	}
+  	if(terms.length > 1024){
+  		terms = terms.slice(0,1023);
+  	}
 
     var query = {
         "size"  : 999,
@@ -114,7 +114,7 @@ Giver.prototype.show_ned = function(cluster_id, cb) {
             }
         }
     };
-    
+      
     this.event_client.search({
         index : 'events',
         type  : this.scrape_name,
@@ -126,8 +126,8 @@ Giver.prototype.show_ned = function(cluster_id, cb) {
             'detail' : _this.ned.make_graph(response.hits.hits)
         });
     }).catch(function(reason){
-		console.log(reason);
-	});
+  	    console.log(reason);
+    });
 };
 
 Giver.prototype.load_ned = function(start_date, end_date, cb) {
@@ -140,7 +140,7 @@ Giver.prototype.load_ned = function(start_date, end_date, cb) {
     	end_date = new Date().getTime();
     }
     start_date/=1000;
-	end_date/=1000;
+	  end_date/=1000;
 
     var query = {
       "size"    : this.config.es_search_size,
@@ -205,7 +205,6 @@ Giver.prototype.url_from_id = function(id, cb) {
     });
 };
 
-// >>
 
 Giver.prototype.get_scrape = function(scrape_name, cb) {
 	var query = {
