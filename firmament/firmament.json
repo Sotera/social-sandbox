@@ -91,6 +91,37 @@
               "install",
               "--config.interactive=false"
             ]
+          },
+          {
+            "RelativeWorkingDir": ".",
+            "Command": "cp",
+            "Args": [
+              "server/config.js.template",
+              "server/config.js"
+            ]
+          },
+          {
+            "RelativeWorkingDir": ".",
+            "Command": "slc",
+            "Args": [
+              "ctl",
+              "-C",
+              "http://localhost:8701",
+              "create",
+              "social-sandbox" 
+            ]
+          },
+          {
+            "RelativeWorkingDir": ".",
+            "Command": "slc",
+            "Args": [
+              "ctl",
+              "-C",
+              "http://localhost:8701",
+              "set-size",
+              "social-sandbox",
+              "1"
+            ]
           }
         ]
       }
