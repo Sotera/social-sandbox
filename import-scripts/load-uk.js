@@ -78,11 +78,11 @@ dataMapping.createIndexWithMapping({
 .then(bulkSave)
 .catch(console.error);
 
-// TODO: slow things down when using larger files
-// to allow image retrieval to finish
+// ********* TODO: slow things down when using larger or multiple files
+// ********* to allow image retrieval to finish
 function process() {
   return new Promise((res, rej) => {
-    const infile = '/home/luke/apps/sotera/social-sandbox/uk-tweets-jun2016-from-joe/raw_tweet_data/live_stream/2016-06-28_10:18:07.231080.json';
+    const infile = './tmp/uk-tweets-jun2016-from-joe/raw_tweet_data/live_stream/2016-06-28_10:18:07.231080.json';
     const lineReader = readline.createInterface({
       input: fs.createReadStream(infile),
       terminal: false
