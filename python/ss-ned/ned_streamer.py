@@ -31,7 +31,7 @@ class NED_STREAMER:
     LOCATION = None
 
     def __init__(self, post_generator, LOCATION='null-location', REDIS_ADDRESS='null-address', REDIS_PORT='null_port',
-                 TIME_THRESH = 30 * 60, DIST_THRESH = 100):
+                 TIME_THRESH = 30 * 60000, DIST_THRESH = 1000000000000):
         self.post_generator = post_generator
         self.LOCATION = LOCATION
         self.TIME_THRESH = TIME_THRESH
@@ -82,16 +82,7 @@ class NED_STREAMER:
             "target" : obj['target'],
             "cands"  : out
         }
-    
-    def distance(self, xlat, xlon, ylat, ylon):
-        return jit_distance(xlat, xlon, ylat, ylon)
-    
-    def _img_sim(self, vec, tvec):
-        try:
-            return 1 - cosine(vec, tvec)
-        except:
-            return None
-    
+ 
     def img_sim(self, obj):
         targ  = obj['target']['id']
         cands = obj['cands']
@@ -109,6 +100,21 @@ class NED_STREAMER:
             'target' : obj['target'],
             'cands'  : cands
         }
+
+    def run(self, es = False):
+        close_in_time  = itertools.imap(self.time_buffer, self.post_generator)
+        close_in_space = itertools.imap(self.geo_filter, close_in_time)
+        close_in_all   = itertools.imap(self.img_sim, close_in_space)
+        # close_in_time  = itertools.imap(self.time_buffer, self.post_generator)
+        # #close_in_space = itertools.imap(self.geo_filter, close_in_time)
+        # close_in_all   = itertools.imap(self.img_sim, close_in_time)
+        print 'here'
+        for post in close_in_all:
+            if es:
+                yield self.es_format(post)
+            else:
+                yield post
+
     
     def es_format(self, post):
         return {
@@ -127,13 +133,13 @@ class NED_STREAMER:
             }
         }
     
-    def run(self, es = False):
-        close_in_time  = itertools.imap(self.time_buffer, self.post_generator)
-        close_in_space = itertools.imap(self.geo_filter, close_in_time)
-        close_in_all   = itertools.imap(self.img_sim, close_in_space)
-        print 'here'
-        for post in close_in_all:
-            if es:
-                yield self.es_format(post)
-            else:
-                yield post
+       
+    def distance(self, xlat, xlon, ylat, ylon):
+        return jit_distance(xlat, xlon, ylat, ylon)
+    
+    def _img_sim(self, vec, tvec):
+        try:
+            return 1 - cosine(vec, tvec)
+        except:
+            return None
+    
