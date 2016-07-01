@@ -1,7 +1,7 @@
 [
   {
     "name": "data-container",
-    "Image": "lukewendling\/data-container:1",
+    "Image": "lukewendling/data-container:1",
     "DockerFilePath": "",
     "Hostname": "data-container"
   },
@@ -21,7 +21,7 @@
         "data-container"
       ],
       "PortBindings": {
-        "9200\/tcp": [
+        "9200/tcp": [
           {
             "HostPort": "9200"
           }
@@ -53,18 +53,17 @@
     "DockerFilePath": "caffedata",
     "Hostname": "caffe",
     "ExposedPorts": {
-      "3001/tcp": {}
+      "8080/tcp": {}
     },
     "HostConfig": {
       "Binds": [
-        "/tmp/sandbox/yemen/yemen_images:/tmp/sandbox-images"
       ],
       "Links": [
         "redis:redis",
         "elasticsearch:elasticsearch"
       ],
       "PortBindings": {
-        "3001/tcp": [
+        "8080/tcp": [
           {
             "HostPort": "80"
           }
@@ -83,44 +82,19 @@
         "StrongLoopBranchName": "deploy",
         "StrongLoopServerUrl": "http://localhost:8701",
         "ServiceName": "social-sandbox",
+        "DoBowerInstall": true,
+        "DeployExisting": true,
+        "ClusterSize": 1,
+        "EnvironmentVariables": {
+          "PORT": 8080
+        },
         "Scripts": [
-          {
-            "RelativeWorkingDir": ".",
-            "Command": "bower",
-            "Args": [
-              "install",
-              "--config.interactive=false"
-            ]
-          },
           {
             "RelativeWorkingDir": ".",
             "Command": "cp",
             "Args": [
               "server/config.js.template",
               "server/config.js"
-            ]
-          },
-          {
-            "RelativeWorkingDir": ".",
-            "Command": "slc",
-            "Args": [
-              "ctl",
-              "-C",
-              "http://localhost:8701",
-              "create",
-              "social-sandbox" 
-            ]
-          },
-          {
-            "RelativeWorkingDir": ".",
-            "Command": "slc",
-            "Args": [
-              "ctl",
-              "-C",
-              "http://localhost:8701",
-              "set-size",
-              "social-sandbox",
-              "1"
             ]
           }
         ]
