@@ -17,6 +17,7 @@
     "express": "^4.13.3",
     "fs": "0.0.2",
     "http": "0.0.0",
+    "lodash": "^4.13.1",
     "loopback": "^2.22.0",
     "loopback-boot": "^2.6.5",
     "loopback-component-explorer": "^2.1.0",
