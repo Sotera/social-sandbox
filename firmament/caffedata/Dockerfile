@@ -1,5 +1,5 @@
 # Start with Ubuntu base image
-FROM jstnldrs/strongcaffe:1.0
+FROM lukewendling/strongcaffe:1
 
 #You CAN do this...but the download is incredibly slow.  The image on docker hub should have the file
 

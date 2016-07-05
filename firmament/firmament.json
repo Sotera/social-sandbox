@@ -49,8 +49,8 @@
   },
   {
     "name": "caffe",
-    "Image": "jstnldrs/caffedata:1.0",
-    "DockerFilePath": "caffedata",
+    "Image": "lukewendling/caffedata:1",
+    "DockerFilePath": "",
     "Hostname": "caffe",
     "ExposedPorts": {
       "8080/tcp": {}
