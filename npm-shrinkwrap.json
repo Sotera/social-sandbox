@@ -1155,6 +1155,37 @@
       "from": "ngeohash@>=0.6.0 <0.7.0",
       "resolved": "https://registry.npmjs.org/ngeohash/-/ngeohash-0.6.0.tgz"
     },
+    "node-dir": {
+      "version": "0.1.14",
+      "from": "node-dir@latest",
+      "resolved": "https://registry.npmjs.org/node-dir/-/node-dir-0.1.14.tgz",
+      "dependencies": {
+        "minimatch": {
+          "version": "3.0.2",
+          "from": "minimatch@>=3.0.2 <4.0.0",
+          "resolved": "https://registry.npmjs.org/minimatch/-/minimatch-3.0.2.tgz",
+          "dependencies": {
+            "brace-expansion": {
+              "version": "1.1.5",
+              "from": "brace-expansion@>=1.0.0 <2.0.0",
+              "resolved": "https://registry.npmjs.org/brace-expansion/-/brace-expansion-1.1.5.tgz",
+              "dependencies": {
+                "balanced-match": {
+                  "version": "0.4.1",
+                  "from": "balanced-match@>=0.4.1 <0.5.0",
+                  "resolved": "https://registry.npmjs.org/balanced-match/-/balanced-match-0.4.1.tgz"
+                },
+                "concat-map": {
+                  "version": "0.0.1",
+                  "from": "concat-map@0.0.1",
+                  "resolved": "https://registry.npmjs.org/concat-map/-/concat-map-0.0.1.tgz"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "request": {
       "version": "2.69.0",
       "from": "request@>=2.67.0 <3.0.0",

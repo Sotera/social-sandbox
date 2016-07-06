@@ -1,20 +1,12 @@
 #!/usr/bin/env node
 
-// UK jun 2016 twitter data from joe with locally saved images
+// UK jun 2016 twitter data from joe
+// expects newline-delimited json files in ./tmp/import/
 
 'use strict';
 
-// scroll ES docs
 const es = require('elasticsearch');
 const request = require('request');
-// const srcClient = new es.Client({
-//     host: '10.1.92.76:9200',
-//     requestTimeout: 60000,
-//     log: 'error'
-//   }),
-//   srcIndex = 'yemen_ceasefire',
-//   srcType = 'instagram'
-//   ;
 const destClient = new es.Client({
     host: 'localhost:9200',
     requestTimeout: 60000,
@@ -31,83 +23,88 @@ const fs = require('fs'),
   dataMapping = require('./data-mapping'),
   mapping = require('./instagram_remap'),
   readline = require('readline'),
-  _ = require('lodash')
+  _ = require('lodash'),
+  dir = require('node-dir'),
+  imagesDir = ['/tmp/sandbox', destType, destType + '_images'].join('/'),
+  images = [] // cached while processing
 ;
 
-// const scrollWait = '10s';
-
-// const range = {
-//   must: [{
-//       range: {
-//         'geoloc.lat': {
-//           gte: 13.4,
-//           lte: 19.5
-//         }
-//       }
-//     },{
-//       range: {
-//         'geoloc.lon': {
-//           gte: 42.3,
-//           lte: 49.0
-//         }
-//       }
-//     },
-//     {
-//       range: {
-//         created_time: {
-//           gte: '1461974400'
-//         }
-//       }
-//     }]
-// };
-
-// const query = {
-//   // _source : ['id', 'postedTime', 'geo'],
-//   size    : 50,
-//   query: {
-//     bool: range
-//   }
-// };
-
-let countDocs = 0;
-let bulkLines = [];
+// let countDocs = 0;
 dataMapping.createIndexWithMapping({
   client: destClient, index: destIndex, type: destType, mapping
 })
+.then(prep)
 .then(process)
-.then(bulkSave)
+.then(bulkIndex)
+.then(() => saveImages(images))
 .catch(console.error);
 
-// ********* TODO: slow things down when using larger or multiple files
-// ********* to allow image retrieval to finish
-function process() {
-  return new Promise((res, rej) => {
-    const infile = './tmp/uk-tweets-jun2016-from-joe/raw_tweet_data/live_stream/2016-06-28_10:18:07.231080.json';
-    const lineReader = readline.createInterface({
-      input: fs.createReadStream(infile),
-      terminal: false
-    });
-
-    lineReader
-    .on('line', line => {
-      let sandboxed = sandboxify(line);
-      if (sandboxed) {
-        console.log(sandboxed);
-        bulkLines.push(JSON.stringify({create: {_id: sandboxed.id}}));
-        bulkLines.push(JSON.stringify(sandboxed));
-        storeImage(sandboxed.id, sandboxed.images.standard_resolution.url);
+function prep() {
+  // remove images
+  (function rmDir(dirPath) {
+    try { var files = fs.readdirSync(dirPath); }
+    catch(e) { return; }
+    if (files.length > 0)
+      for (var i = 0; i < files.length; i++) {
+        var filePath = dirPath + '/' + files[i];
+        if (fs.statSync(filePath).isFile())
+          fs.unlinkSync(filePath);
+        else // is dir
+          rmDir(filePath);
       }
-    })
-    .on('close', res)
-    .on('error', rej);
+    fs.rmdirSync(dirPath);
+    return;
+  })(imagesDir);
+}
+
+function process() {
+  let bulkLines = [];
+
+  return new Promise((res, rej) => {
+    console.log(__dirname)
+    dir.readFilesStream(__dirname + '/../tmp/import', 
+      { match: /.json$/ },
+      (err, stream, next) => {
+        if (err) throw err;
+        const lineReader = readline.createInterface({
+          input: stream,
+          terminal: false
+        });
+
+        lineReader
+        .on('line', line => {
+          let sandboxed = sandboxify(line);
+          if (sandboxed) {
+            console.log(sandboxed);
+            // TODO: would be better to stream
+            bulkLines.push(JSON.stringify({create: {_id: sandboxed.id}}));
+            bulkLines.push(JSON.stringify(sandboxed));
+            // TODO: would be better to stream
+            images.push({
+              basename: sandboxed.id, 
+              url: sandboxed.images.standard_resolution.url
+            });
+          }
+        })
+        .on('close', () => next())
+        .on('error', err => { throw err; })
+        ;
+      },
+      (err, files) => {
+        if (err) throw err;
+        return res(bulkLines);
+      }
+
+    );
+
   });
 }
 
-function bulkSave() {
+function bulkIndex(lines) {
   return destClient.bulk({
     index: destIndex,
     type: destType,
-    body: bulkLines.join('\n')
+    body: lines.join('\n')
   });
 }
 
@@ -140,18 +137,58 @@ function sandboxify(line) {
   // delete sandboxed.user;
   return sandboxed;
 }
+
 // assumes image url has file ext in path.
-// I think sandbox requires .jpg files in regex checks. LW
-function storeImage(basename, imageUrl) {
-  var parsed = url.parse(imageUrl);
-  let dir = ['/tmp/sandbox', destType, destType + '_images'].join('/');
-  mkdirp.sync(dir);
-  // path + cache key
-  // let imagePath = [dir, path.basename(parsed.pathname)].join('/')// + parsed.search;
-  let pathParts = parsed.pathname.split('.');
-  let ext = '.' + pathParts[pathParts.length-1];
-  let imagePath = [dir, basename].join('/')// + parsed.search;
-  request(imageUrl).pipe(fs.createWriteStream(imagePath + ext));
+// sandbox requires .jpg files in regex checks.
+function saveImages(images) {
+  mkdirp.sync(imagesDir);
+  const BATCH_SIZE = 50;
+  
+  // save in chunks with a built-in delay to bypass
+  // file handler limits, request limits, etc.
+  return Promise.all(_(images).chunk(BATCH_SIZE).map(batchSave))
+  // .then(console.log)
+  .catch(console.error);
+
+  function batchSave(images) {
+    let imageRequests = images.map(saveImage);
+    return Promise.all(imageRequests)
+    .then(() => console.log('Saving images...'))
+    .then(slowdown);
+  }
+}
+
+function saveImage(img) {
+  return new Promise((res, rej) => {
+    let parsed = url.parse(img.url);
+    let pathParts = parsed.pathname.split('.');
+    let ext = '.' + pathParts[pathParts.length-1];
+    let imagePath = [imagesDir, img.basename].join('/') + ext;
+    let imageStream = fs.createWriteStream(imagePath);
+    let imageReq = request(img.url);
+
+    imageStream
+      .on('finish', () => res())
+      .on('error', err => {
+        fs.unlink(imagePath);
+        rej(err);
+      });
+
+    imageReq
+      .on('error', err => {
+        console.error(err);
+        fs.unlink(imagePath);
+      });
+    
+    imageReq.pipe(imageStream);
+  });
+}
+
+// arbitrary slowdown to ease http requests
+function slowdown() {
+  return new Promise(res => {
+    setTimeout(() => res(), 5000);
+  });
 }
 
 // function scroll(res) {
@@ -192,9 +229,3 @@ function storeImage(basename, imageUrl) {
 //     return 'done';
 //   }
 // }
-
-function slowdown(hits) { // pass hits thru
-  return new Promise(res => {
-    setTimeout(() => res(hits), 3000);
-  });
-}
